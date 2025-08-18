@@ -1,0 +1,11 @@
+FROM nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
+
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
+
+COPY ./tensorrtllm_backend/tensorrt_llm/examples/gemma/requirements.txt /requirements.txt
+# cant be resolved inside the container from some reason
+RUN pip3 install --extra-index-url https://pypi.nvidia.com tensorrt-llm
+# Need to be at least 3.5
+RUN pip3 install Cmake
+RUN pip3 install -r /requirements.txt
+
