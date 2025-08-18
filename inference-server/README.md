@@ -67,8 +67,7 @@ Need to configure `config.pbtxt` file in the `model_repository`
                   - model.py `# Tokenizer (HF AutoTokenizer)`
               config.pbtxt
           - tensorrt_llm/
-              - 1/
-                  # (empty here; engines live outside under _assets)
+              - 1/ `# (empty here; engines live outside under _assets)`
               - config.pbtxt
           - postprocessing/
               - 1/
