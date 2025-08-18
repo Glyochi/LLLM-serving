@@ -1,3 +1,5 @@
+# This might only work for sp model
+# https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tensorrtllm_backend/docs/gemma.html
 BASE_PATH="/home/gly/projects/netflix/inference-server"
 DOCKER_BASE_PATH="/opt/tritonserver/projects"
 TOOL_PATH="$BASE_PATH/tensorrtllm_backend/tensorrt_llm/triton_backend"

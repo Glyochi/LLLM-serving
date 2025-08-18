@@ -55,6 +55,8 @@ Need to configure `config.pbtxt` file in the `model_repository`
   - What they mean: `https://github.com/triton-inference-server/tensorrtllm_backend/blob/main/docs/model_config.md#tensorrt_llm_bls-model`
   - Use `scripts/fill_config.sh` to populate the config.pbtxt files.
       - Make sure to update the script for the current model
+        - Right now it only support `sp model` (`https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tensorrtllm_backend/docs/gemma.html`) 
+      - [Notes] sometimes, there's a missing `parameter` in one of the config file => script crash. Just add it in the source file and that should works.
       - Set up tensorrtllm_backend and pull with git lfs so we have skeleton config.pbtxt
   - Folder structure for gemma-2b-it:
       - model-repository/
