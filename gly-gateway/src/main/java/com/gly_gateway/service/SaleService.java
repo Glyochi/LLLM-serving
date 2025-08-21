@@ -1,4 +1,4 @@
-package com.example.gly_gateway.service;
+package com.gly_gateway.service;
 
 import java.util.Map;
 
@@ -8,8 +8,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import com.example.gly_gateway.model.Customer;
-import com.example.gly_gateway.model.Order;
+import com.gly_gateway.model.Customer;
+import com.gly_gateway.model.Order;
 
 import reactor.core.publisher.Mono;
 

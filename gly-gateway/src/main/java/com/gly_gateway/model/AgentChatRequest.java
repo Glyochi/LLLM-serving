@@ -1,4 +1,4 @@
-package com.example.gly_gateway.model;
+package com.gly_gateway.model;
 
 import java.util.UUID;
 

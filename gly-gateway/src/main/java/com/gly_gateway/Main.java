@@ -1,9 +1,9 @@
-package com.example.gly_gateway;
+package com.gly_gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.example.gly_gateway.controller.MainController;
+import com.gly_gateway.controller.MainController;
 
 @SpringBootApplication
 public class Main {

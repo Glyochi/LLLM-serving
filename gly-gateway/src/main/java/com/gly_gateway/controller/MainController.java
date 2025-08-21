@@ -1,4 +1,4 @@
-package com.example.gly_gateway.controller;
+package com.gly_gateway.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

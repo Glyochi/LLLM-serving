@@ -1,4 +1,4 @@
-package com.example.gly_gateway.controller;
+package com.gly_gateway.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,27 +9,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.gly_gateway.model.Customer;
-import com.example.gly_gateway.service.CustomerService;
+import com.gly_gateway.model.Order;
+import com.gly_gateway.service.OrderService;
 
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 @RestController
-@RequestMapping("/customer")
-public class CustomerController {
+@RequestMapping("/order")
+public class OrderController {
 
   @Autowired
-  private CustomerService customerService;
+  private OrderService orderService;
 
   @PostMapping("/create")
-  public Mono<Customer> createCustomer(@RequestBody Customer customer) {
-    return customerService.saveCustomer(customer);
+  public Mono<Order> createOrder(@RequestBody Order order) {
+    return orderService.saveOrder(order);
   }
 
   @GetMapping("/find-by-id")
-  public Mono<Customer> findCustomerById(@RequestParam("customerId") String customerId) {
-    return customerService.getCustomerById(customerId);
+  public Mono<Order> findOrderById(@RequestParam("orderId") String orderId) {
+    return orderService.getOrderById(orderId);
   }
+
 
 }

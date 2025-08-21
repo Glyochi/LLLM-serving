@@ -1,4 +1,4 @@
-package com.example.gly_gateway;
+package com.gly_gateway;
 
 import java.time.Duration;
 import java.util.List;

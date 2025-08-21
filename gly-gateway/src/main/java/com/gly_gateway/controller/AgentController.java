@@ -1,4 +1,4 @@
-package com.example.gly_gateway.controller;
+package com.gly_gateway.controller;
 
 import java.time.Duration;
 
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.gly_gateway.model.AgentChatRequest;
+import com.gly_gateway.model.AgentChatRequest;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

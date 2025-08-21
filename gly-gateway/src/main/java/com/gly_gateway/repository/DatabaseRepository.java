@@ -1,4 +1,4 @@
-package com.example.gly_gateway.repository;
+package com.gly_gateway.repository;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguration;
