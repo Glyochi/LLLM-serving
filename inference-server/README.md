@@ -88,6 +88,7 @@ Need to configure `config.pbtxt` file in the `model_repository`
 
 ### Streaming tokens
 - Some pointers here, but no tutorial on grpc request `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tensorrtllm_backend/docs/encoder_decoder.html#run-with-decoupled-mode-streaming`
+- Triton follows `Kserve convention`
 - Postman needs this grpc `https://github.com/triton-inference-server/common/tree/main/protobuf`
 - grpc_service.proto documentation `https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton_inference_server_1140/user-guide/docs/protobuf_api/grpc_service.proto.html`
 

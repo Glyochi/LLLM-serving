@@ -1,31 +1,29 @@
 package com.gly_gateway.model;
 
-import java.util.UUID;
-
 public class AgentChatRequest {
 
-  private String prefill;
+  private String prompt;
 
   public AgentChatRequest() {
   }
 
-  public AgentChatRequest(String prefill) {
-    this.prefill = prefill;
+  public AgentChatRequest(String prompt) {
+    this.prompt = prompt;
   }
 
   @Override
   public String toString() {
     return "AgentChatRequest{" +
-      "prefill='" + prefill + '\'' + 
+      "prompt='" + prompt + '\'' + 
       '}';
   }
 
-  public String getPrefill() {
-    return prefill;
+  public String getPrompt() {
+    return prompt;
   }
 
-  public void setPrefill(String prefill) {
-    this.prefill = prefill;
+  public void setPrompt(String prompt) {
+    this.prompt = prompt;
   }
 
 }
