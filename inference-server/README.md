@@ -92,5 +92,63 @@ Need to configure `config.pbtxt` file in the `model_repository`
 - Postman needs this grpc `https://github.com/triton-inference-server/common/tree/main/protobuf`
 - grpc_service.proto documentation `https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton_inference_server_1140/user-guide/docs/protobuf_api/grpc_service.proto.html`
 
+### Model configurations
+- Good read on decoding strategy `https://blog.gopenai.com/general-understanding-of-decoding-strategies-commonly-used-in-text-generation-512128bacfeb`
+- To make model behaves more like a chatbot, need to modify
+    - `sampling` - `https://medium.com/thinking-sand/llm-sampling-explained-selecting-the-next-token-b897b5984833`
+        - Greedy, pick highest prob
+        - Litearlly for loop + random to pick based on prob distribution (say c1: 10, c2: 1, c3: 4). Pick highest occurerence (c1).
+    - `seed`
+    - `temperature` - `https://medium.com/@kelseyywang/a-comprehensive-guide-to-llm-temperature-%EF%B8%8F-363a40bbc91f`
+        - Model outputs logits, then passed to a softmax function to get probabilities distribution 
+        - Let `z_i` be the logit value of token at index i, `P_i` be the probability of token at index i, `T` be temperature
+            => Formula: `P_i = e^(z_i / T) / Sum_for_all_j(e^z_j / T)`
+        - Look up a softmax curve, should be what `P_i` looks like
+            - As `T decreases` => `(z_i / T) increases` => `P_i` grows rate increases => More definite answer as only few tokens have high probabilities => Less variety
+            - As `T increases` => `(z_i / T) decreases` => `P_i` grows rate decreases => Less definite answer as everything clump together => More variety  
+    - `beam_width`
+        - Pseudocode: `https://www.geeksforgeeks.org/machine-learning/introduction-to-beam-search-algorithm/`
+        - Application + Math: `https://medium.com/ai-assimilating-intelligence/building-intuition-on-log-probabilities-in-language-models-8fd00f34c03c`
+        - Basically a `BFS + Heuristic` to pick k best node/token per steps instead of all posibilities
+            - Algorithm is suboptimal, not guaranteeing optimal solution
+            - Pick k per steps => Heuristic dependent
+            - Best/heuristic function
+                - `Log Probabilities`
+                    - Need to understand alternative, compounding probabilities of all tokens per sequence
+                        - Probabilities range is [0, 1]
+                        - [Difficult handling] 
+                            - Result probability grows closer to 0 as sequence grows 
+                            - Possibly `underflow` where values close to zero are rounded to zero. 
+                            - Also hard to intepret (Diff between 0.00357 and 0.00326?) 
+                        - [Expensive Op - Eh idk about this one chief] 
+                            - A lot of mulitplications to compound up to a sequence.
+                            But it seems only for cases you have to evaluate different subsets of the same sequence `https://cs.stackexchange.com/questions/77135/why-is-adding-log-probabilities-faster-than-multiplying-probabilities`
+                    - How this help
+                        - Log of Probabilities is [-∞, 0]
+                        - [Easier handling]
+                            - Result log probabilities grows from 0 to -∞ as sequence grows
+                            - No more `underflow` (unless it gets under SMALLEST_POSSIBLE_FLOAT of course) => the cool kids call it `numerically stable`
+                            - Just adding log prob for each token seems easier at least by hand, easier to debug?
+                            - Much easier to intepret (Diff between -2.447 and -2.486, Ok it seems slightly better but not WOW better lol)
+                            - Can always revert back to probability with `prob = e ^ log(prob)` 
+                        - [Cheaper Op - Eh idk about this one chief] 
+                            - Compounding log probabilities is a lot summations, since `log(a * b) = log(a) + log(b)`.
+                            - Still, needing to do log op, idk seems expensive ngl
+                            - Idk about this one, log seems about the same as mul, if not more.
+                            It seems that the only benefit in term of performance is to evaluate subsets of the same sequence => You can cache the log and only have to do additions from there. 
+                    - TLDR
+                        - Seems like `underflow` is the main reason why log prob is good
+                        - Also easier to handle means easier to debug
+                        - `Seeing model sequence's probability means that if under/over a certain threshhold`, we can intepret that and response in some way
+                        (Goal for model response's prob or trigger asking for more info from prompt) 
+        - Shortcomings:
+            - Repetitions of same words
+            - Expensive computation
+            - Boring/predictable?
+            - [Alternatives] Read the decoding strategy blog post
+    - `top_k`
+    - `top_p`
+- TRT-LLM uses a default/fixed seed if not provided on per request.
+-
 
 ### GEN AI for benchmarking

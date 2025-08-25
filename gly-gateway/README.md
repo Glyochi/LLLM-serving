@@ -68,7 +68,13 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
 - The application was serving fine? I guess it was only for LSP
 
 # Error Handling
-- RFC 9457 ??
+- Goal is RFC 9457 compliant `https://www.rfc-editor.org/rfc/rfc9457.html#name-json-schema-for-http-proble`
+    - TLDR: every error response body has to have a specific format, and you can return additional data fields for dev consuming the api to use for debuggings
+    - Need to set up a documentation server for field `type`. Perhaps `SWAGGER`? 
+- Using `jakarta` for contraint annotations + validation
+- Implementations of RFC 9457 in `GlobalHandlingError.java`
+    - Includes some hacky way of intercepting `jarkata` validation to return a formatted error
+    - Support for `custom exceptions`
 
 # Structure
 gly-gateway/

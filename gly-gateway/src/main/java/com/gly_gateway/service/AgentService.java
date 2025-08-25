@@ -8,6 +8,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.gly_gateway.chat_template.GemmaChatTemplate;
+import com.gly_gateway.exception.InferenceFailedException;
+import com.gly_gateway.exception.ValidationException;
+import com.gly_gateway.model.AgentChatRequest;
 import com.google.protobuf.ByteString;
 
 import ch.qos.logback.core.net.SyslogOutputStream;
@@ -28,13 +32,18 @@ public class AgentService {
   private final GRPCInferenceServiceStub asyncStub;
   private final GRPCInferenceServiceFutureStub futureStub;
 
-  public AgentService(GRPCInferenceServiceStub asyncStub, GRPCInferenceServiceFutureStub futureStub) {
+  private final GemmaChatTemplate gemmaChatTemplate;
+
+  public AgentService(GRPCInferenceServiceStub asyncStub, GRPCInferenceServiceFutureStub futureStub,
+      GemmaChatTemplate gemmaChatTemplate) {
     this.asyncStub = asyncStub;
     this.futureStub = futureStub;
+    this.gemmaChatTemplate = gemmaChatTemplate;
   }
 
   static ByteString encodeStringToBytes(String text) {
-    // BYTES encoding: [uint32 / 4 bytes for data length][bytes] repeated; little-endian
+    // BYTES encoding: [uint32 / 4 bytes for data length][bytes] repeated;
+    // little-endian
     var text_bytes = text.getBytes(StandardCharsets.UTF_8);
     int total = 4 + text_bytes.length;
 
@@ -57,6 +66,14 @@ public class AgentService {
     return ByteString.copyFrom(buf);
   }
 
+  static ByteString encodeFloat32ToBytes(float value) {
+    // BYTES encoding: [unint32 / 4 bytes]
+    ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+    buf.putFloat(value);
+    buf.flip();
+    return ByteString.copyFrom(buf);
+  }
+
   static ByteString encodeBoolToBytes(boolean value) {
     // BYTES encoding: [boolean / 1 byte]
     // 1 for true and 0 for false
@@ -66,33 +83,32 @@ public class AgentService {
     return ByteString.copyFrom(buf);
   }
 
-  private ModelInferRequest createModelInferRequest(String prompt) {
-    var bytes_contents_text_input = ByteString.copyFromUtf8(prompt);
-    var contents_text_input = InferTensorContents.newBuilder().addBytesContents(bytes_contents_text_input);
+  private ModelInferRequest createModelInferRequest(AgentChatRequest agentChatRequest) throws ValidationException {
     var input_text_input = ModelInferRequest.InferInputTensor.newBuilder()
         .setName("text_input").setDatatype("BYTES").addShape(1).addShape(1);
-    //    .setContents(contents_text_input);
 
-    var ints_contents_max_tokens = 1000;
-    var contents_max_tokens = InferTensorContents.newBuilder().addIntContents(ints_contents_max_tokens);
+    int ints_contents_max_tokens = 1000;
     var input_max_tokens = ModelInferRequest.InferInputTensor.newBuilder()
         .setName("max_tokens").setDatatype("INT32").addShape(1).addShape(1);
-    //    .setContents(contents_max_tokens);
 
-    var bool_contents_stream = true;
-    var contents_stream = InferTensorContents.newBuilder().addBoolContents(bool_contents_stream);
+    float float_temperature = 1.0f;
+    var input_temperature = ModelInferRequest.InferInputTensor.newBuilder()
+        .setName("temperature").setDatatype("FP32").addShape(1).addShape(1);
+
+    var bool_contents_stream = false;
     var input_stream = ModelInferRequest.InferInputTensor.newBuilder()
         .setName("stream").setDatatype("BOOL").addShape(1).addShape(1);
-    // .setContents(contents_stream);
 
     return ModelInferRequest.newBuilder()
         .setModelName("tensorrt_llm_bls")
         .setModelVersion("1")
         .addInputs(0, input_text_input)
         .addInputs(1, input_max_tokens)
-        .addInputs(2, input_stream)
-        .addRawInputContents(encodeStringToBytes(prompt))
+        .addInputs(2, input_temperature)
+        .addInputs(3, input_stream)
+        .addRawInputContents(encodeStringToBytes(gemmaChatTemplate.applyTemplate(agentChatRequest.getContents())))
         .addRawInputContents(encodeInt32ToBytes(ints_contents_max_tokens))
+        .addRawInputContents(encodeFloat32ToBytes(float_temperature))
         .addRawInputContents(encodeBoolToBytes(bool_contents_stream))
         .build();
   }
@@ -115,9 +131,11 @@ public class AgentService {
     return Optional.empty();
   }
 
-  public Flux<String> agentComplete(String prompt) {
+  public Flux<String> agentComplete(AgentChatRequest agentChatRequest) throws ValidationException {
 
-    return Flux.create(sink -> {
+    ModelInferRequest req = createModelInferRequest(agentChatRequest);
+
+    Flux<String> completion_stream = Flux.create(sink -> {
 
       StreamObserver<ModelStreamInferResponse> respObs = new StreamObserver<>() {
         @Override
@@ -138,7 +156,7 @@ public class AgentService {
 
         @Override
         public void onError(Throwable t) {
-          sink.error(t);
+          sink.error(new InferenceFailedException("Inferencing Failed.", t));
         }
 
         @Override
@@ -149,8 +167,6 @@ public class AgentService {
 
       // 2) Request observer: send the request, then complete
       StreamObserver<ModelInferRequest> reqObs = asyncStub.modelStreamInfer(respObs);
-
-      ModelInferRequest req = createModelInferRequest(prompt);
 
       // Send the request and finish the client side of the stream
       reqObs.onNext(req);
@@ -165,6 +181,8 @@ public class AgentService {
       });
 
     });
+
+    return completion_stream;
   }
 
 }

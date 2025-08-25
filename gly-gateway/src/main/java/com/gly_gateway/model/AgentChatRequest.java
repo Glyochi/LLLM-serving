@@ -1,29 +1,30 @@
 package com.gly_gateway.model;
 
+import java.util.List;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
+
 public class AgentChatRequest {
 
-  private String prompt;
+  @Valid
+  @NotNull
+  final List<MessageData> contents;
 
-  public AgentChatRequest() {
-  }
-
-  public AgentChatRequest(String prompt) {
-    this.prompt = prompt;
+  public AgentChatRequest(List<MessageData> contents) {
+    this.contents = contents;
   }
 
   @Override
   public String toString() {
     return "AgentChatRequest{" +
-      "prompt='" + prompt + '\'' + 
+      "contents='" + contents + '\'' + 
       '}';
   }
 
-  public String getPrompt() {
-    return prompt;
-  }
-
-  public void setPrompt(String prompt) {
-    this.prompt = prompt;
+  public List<MessageData> getContents() {
+	return contents;
   }
 
 }
