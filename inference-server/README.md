@@ -94,18 +94,30 @@ Need to configure `config.pbtxt` file in the `model_repository`
 
 ### Model configurations
 - Good read on decoding strategy `https://blog.gopenai.com/general-understanding-of-decoding-strategies-commonly-used-in-text-generation-512128bacfeb`
-- To make model behaves more like a chatbot, need to modify
+    - TLDR: no clear answer which is the best
+    - Either do benchmark for the task itself
+    - Or read online and see what strategy is best suited for my task and send it
+- Decoding strategy for better chat bot experiences 
+    - `seed`
+        - Random seed lol, for sampling random generator
     - `sampling` - `https://medium.com/thinking-sand/llm-sampling-explained-selecting-the-next-token-b897b5984833`
         - Greedy, pick highest prob
         - Litearlly for loop + random to pick based on prob distribution (say c1: 10, c2: 1, c3: 4). Pick highest occurerence (c1).
-    - `seed`
     - `temperature` - `https://medium.com/@kelseyywang/a-comprehensive-guide-to-llm-temperature-%EF%B8%8F-363a40bbc91f`
         - Model outputs logits, then passed to a softmax function to get probabilities distribution 
         - Let `z_i` be the logit value of token at index i, `P_i` be the probability of token at index i, `T` be temperature
-            => Formula: `P_i = e^(z_i / T) / Sum_for_all_j(e^z_j / T)`
+            => Prob formula: `P_i = e^(z_i / T) / Sum_for_all_j(e^z_j / T)`
+            => Log Prob formula: `log(P_i) = z_i / T - log(Sum_for_all_j(e^(z_j / T)))`
         - Look up a softmax curve, should be what `P_i` looks like
             - As `T decreases` => `(z_i / T) increases` => `P_i` grows rate increases => More definite answer as only few tokens have high probabilities => Less variety
             - As `T increases` => `(z_i / T) decreases` => `P_i` grows rate decreases => Less definite answer as everything clump together => More variety  
+        - It's very subjective in term of how `good` a model is. Benchmarking is needed (`promptfoo` is used in the article if output can be defined easily)
+    - `top_k`
+        - Used with `sampling` technique, to remove the least probable tokens out of the random equation
+        - Need to normalize the probabilities after trim down to only `k` tokens
+        - [Practical application] it seems that `sampling` + `top_k` + decently high `temperature` gives `diverse and high-quality` response compared to `beam search` 
+    - `top_p`
+        - Also used with `sampling` technique just like `top_k`, but instead of fixed cut-off, it dynamically cut off tokens only when the compounded probabilities of selected token exceeded `p`
     - `beam_width`
         - Pseudocode: `https://www.geeksforgeeks.org/machine-learning/introduction-to-beam-search-algorithm/`
         - Application + Math: `https://medium.com/ai-assimilating-intelligence/building-intuition-on-log-probabilities-in-language-models-8fd00f34c03c`
@@ -146,9 +158,12 @@ Need to configure `config.pbtxt` file in the `model_repository`
             - Expensive computation
             - Boring/predictable?
             - [Alternatives] Read the decoding strategy blog post
-    - `top_k`
-    - `top_p`
 - TRT-LLM uses a default/fixed seed if not provided on per request.
--
+- [TODO] Look into speculative decoding
+    - How does a big model `validate?` the accuracy of the generated tokens from draft models/speculative heads. Need more reading.
+    - EAGLE (draft models)
+    - MEDUSA (need to train the speculative heads)
+    - Pytorch blog post claims Medusa speculative heads is more affective in term of quality/latency gains than using draft models `https://pytorch.org/blog/hitchhikers-guide-speculative-decoding/`
+    - Triton recommended EAGLE over MEDUSA for 1.6x speedup + 0.8 over 0.6 accuracy `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tutorials/Feature_Guide/Speculative_Decoding/TRT-LLM/README.html#medusa`
 
 ### GEN AI for benchmarking

@@ -5,6 +5,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
@@ -59,15 +60,23 @@ public class AgentService {
   }
 
   static ByteString encodeInt32ToBytes(int value) {
-    // BYTES encoding: [unint32 / 4 bytes]
+    // BYTES encoding: [int32 / 4 bytes]
     ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
     buf.putInt(value);
     buf.flip();
     return ByteString.copyFrom(buf);
   }
 
+  static ByteString encodeLong64ToBytes(long value) {
+    // BYTES encoding: [int64 / 8 bytes]
+    ByteBuffer buf = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
+    buf.putLong(value);
+    buf.flip();
+    return ByteString.copyFrom(buf);
+  }
+
   static ByteString encodeFloat32ToBytes(float value) {
-    // BYTES encoding: [unint32 / 4 bytes]
+    // BYTES encoding: [float32 / 4 bytes]
     ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
     buf.putFloat(value);
     buf.flip();
@@ -84,16 +93,27 @@ public class AgentService {
   }
 
   private ModelInferRequest createModelInferRequest(AgentChatRequest agentChatRequest) throws ValidationException {
+    Random random = new Random();
+
     var input_text_input = ModelInferRequest.InferInputTensor.newBuilder()
         .setName("text_input").setDatatype("BYTES").addShape(1).addShape(1);
 
-    int ints_contents_max_tokens = 1000;
+    // Java doesn't have uint64/unsigned long. So just randomize a long which should be sufficient for random purpose 
+    long float_seed = random.nextLong();
+    var input_seed = ModelInferRequest.InferInputTensor.newBuilder()
+        .setName("seed").setDatatype("UINT64").addShape(1).addShape(1);
+
+    int int_max_tokens = 1000;
     var input_max_tokens = ModelInferRequest.InferInputTensor.newBuilder()
         .setName("max_tokens").setDatatype("INT32").addShape(1).addShape(1);
 
     float float_temperature = 1.0f;
     var input_temperature = ModelInferRequest.InferInputTensor.newBuilder()
         .setName("temperature").setDatatype("FP32").addShape(1).addShape(1);
+
+    float float_top_p = 0.95f;
+    var input_top_p = ModelInferRequest.InferInputTensor.newBuilder()
+        .setName("top_p").setDatatype("FP32").addShape(1).addShape(1);
 
     var bool_contents_stream = false;
     var input_stream = ModelInferRequest.InferInputTensor.newBuilder()
@@ -103,12 +123,16 @@ public class AgentService {
         .setModelName("tensorrt_llm_bls")
         .setModelVersion("1")
         .addInputs(0, input_text_input)
-        .addInputs(1, input_max_tokens)
-        .addInputs(2, input_temperature)
-        .addInputs(3, input_stream)
+        .addInputs(1, input_seed)
+        .addInputs(2, input_max_tokens)
+        .addInputs(3, input_temperature)
+        .addInputs(4, input_top_p)
+        .addInputs(5, input_stream)
         .addRawInputContents(encodeStringToBytes(gemmaChatTemplate.applyTemplate(agentChatRequest.getContents())))
-        .addRawInputContents(encodeInt32ToBytes(ints_contents_max_tokens))
+        .addRawInputContents(encodeLong64ToBytes(float_seed))
+        .addRawInputContents(encodeInt32ToBytes(int_max_tokens))
         .addRawInputContents(encodeFloat32ToBytes(float_temperature))
+        .addRawInputContents(encodeFloat32ToBytes(float_top_p))
         .addRawInputContents(encodeBoolToBytes(bool_contents_stream))
         .build();
   }
