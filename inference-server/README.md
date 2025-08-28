@@ -1,10 +1,10 @@
-### Following this guide
+# Following this guide
 - https://github.com/triton-inference-server/tutorials/blob/main/Popular_Models_Guide/Llama2/trtllm_guide.md
 
-### General Requirements
+# General Requirements
 - Nvidia Drivers + Nvidia-container-toolkit + tritonserver container 
 
-### Project structure 
+# Project structure 
 - scripts: helpful scripts
     - Building .engine files
     - Filling configs for `model-repository`
@@ -31,24 +31,24 @@
         - model-repository
         - scripts
 
-### Building .engine files
-# Requirements
+# Building .engine files
+## Requirements
 - Custom Docker image built with dependencies installed on it `/tensorrtllm_backend/tensorrt_llm/example/{model_family}/requirements.txt`
 - Model checkpoint downloaded from huggingface (git clone with lfs). Not the raw one from huggingface-cli
 - Engine files built from that model inside the customer container
     - There's instruction on how to convert hf checkpoint to triton consumalbe (.onnx?) and then convert to .engine files in `Tensorrtllm_backend/tensorrt_llm/examples/{model_family}/README.md`
     - Don't always work lol
 
-# Llama 7b
+## Llama 7b
 - Follow the README.md should be good enough
 - Quantize is iffy need more experiment has not gotten far with it yet
 - Too big for 4090 still
 
-# Gemma 2b/Gemma 2b it
+## Gemma 2b/Gemma 2b it
 - Follow the README.md but need to modify convert_checkpoint.py, bug in GemmaConfig.from_hugging_face (quant_config somehow mistook as mapping python wth)
 - Fit noicely on 4090
 
-### Setting up model-repository for Triton 
+# Setting up model-repository for Triton 
 [YOU HAVE TO MAINTAIN THE STRUCTURE YOURSELF AND MOVE THE TOKENIZER/ENGINE FILES TO WHERE THEY SUPPOSED TO BE]
 Need to configure `config.pbtxt` file in the `model_repository` 
   - File content: `https://github.com/NVIDIA/TensorRT-LLM/tree/main/triton_backend/all_models/inflight_batcher_llm`
@@ -86,13 +86,13 @@ Need to configure `config.pbtxt` file in the `model_repository`
                       - config.json
                       - rank0.engine (or more) `# Built engine file for gemma-2b-it`
 
-### Streaming tokens
+# Streaming tokens
 - Some pointers here, but no tutorial on grpc request `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tensorrtllm_backend/docs/encoder_decoder.html#run-with-decoupled-mode-streaming`
 - Triton follows `Kserve convention`
 - Postman needs this grpc `https://github.com/triton-inference-server/common/tree/main/protobuf`
 - grpc_service.proto documentation `https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton_inference_server_1140/user-guide/docs/protobuf_api/grpc_service.proto.html`
 
-### Model configurations
+# Model configurations
 - Good read on decoding strategy `https://blog.gopenai.com/general-understanding-of-decoding-strategies-commonly-used-in-text-generation-512128bacfeb`
     - TLDR: no clear answer which is the best
     - Either do benchmark for the task itself
@@ -166,4 +166,4 @@ Need to configure `config.pbtxt` file in the `model_repository`
     - Pytorch blog post claims Medusa speculative heads is more affective in term of quality/latency gains than using draft models `https://pytorch.org/blog/hitchhikers-guide-speculative-decoding/`
     - Triton recommended EAGLE over MEDUSA for 1.6x speedup + 0.8 over 0.6 accuracy `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tutorials/Feature_Guide/Speculative_Decoding/TRT-LLM/README.html#medusa`
 
-### GEN AI for benchmarking
+# GEN AI for benchmarking

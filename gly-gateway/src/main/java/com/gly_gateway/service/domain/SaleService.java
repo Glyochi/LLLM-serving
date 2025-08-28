@@ -1,4 +1,4 @@
-package com.gly_gateway.service;
+package com.gly_gateway.service.domain;
 
 import java.util.Map;
 

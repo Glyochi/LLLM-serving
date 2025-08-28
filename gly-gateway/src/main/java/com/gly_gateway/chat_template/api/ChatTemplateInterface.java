@@ -1,9 +1,9 @@
-package com.gly_gateway.chat_template;
+package com.gly_gateway.chat_template.api;
 
 import java.util.List;
 
-import com.gly_gateway.exception.ValidationException;
-import com.gly_gateway.model.MessageData;
+import com.gly_gateway.exception.triton.ValidationException;
+import com.gly_gateway.model.triton.MessageData;
 
 public interface ChatTemplateInterface {
  

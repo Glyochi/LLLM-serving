@@ -1,4 +1,4 @@
-package com.gly_gateway.service;
+package com.gly_gateway.service.domain;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import com.gly_gateway.model.Customer;
+import com.gly_gateway.model.domain.Customer;
 
 import reactor.core.publisher.Mono;
 

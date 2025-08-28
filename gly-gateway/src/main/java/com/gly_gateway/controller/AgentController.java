@@ -1,7 +1,5 @@
 package com.gly_gateway.controller;
 
-import java.time.Duration;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
@@ -11,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gly_gateway.exception.InferenceFailedException;
-import com.gly_gateway.exception.ValidationException;
-import com.gly_gateway.model.AgentChatRequest;
-import com.gly_gateway.service.AgentService;
+import com.gly_gateway.controller.dto.ChatRequest;
+import com.gly_gateway.exception.triton.InferenceFailedException;
+import com.gly_gateway.exception.triton.ValidationException;
+import com.gly_gateway.service.triton.api.ModelAdapterRegistry;
 
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
@@ -26,29 +24,20 @@ import reactor.core.publisher.Flux;
 public class AgentController {
 
   @Autowired
-  AgentService agentService;
+  ModelAdapterRegistry registry;
 
   @PostMapping(value = "/fail")
   public Flux<String> fail() throws InferenceFailedException {
     throw new InferenceFailedException("REEEEEEEEEEEE");
   }
 
-  @PostMapping(value = "/complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-
-  public Flux<String> completeChat(@RequestBody AgentChatRequest agentChatRequest) {
-    return Flux.just("1", "2", "3", "4").delayElements(Duration.ofMillis(500));
-  }
-
   @PostMapping(value = "/stream-complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public Flux<String> monoCompleteChat(@Valid @RequestBody AgentChatRequest agentChatRequest) throws ValidationException, InferenceFailedException {
-    return agentService.agentComplete(agentChatRequest);
+  public Flux<String> streamComplete(@Valid @RequestBody ChatRequest request)
+      throws ValidationException, InferenceFailedException {
+    var conversation = request.conversation();
+    var inferenceParams = request.inferenceParams();
+    var adapter = registry.forModelId(inferenceParams.getModelId());
+    return adapter.stream(adapter.buildRequest(conversation, inferenceParams));
   }
-
-  // @PostMapping(value = "/stream-complete-2", produces =
-  // MediaType.TEXT_EVENT_STREAM_VALUE)
-  // public Flux<String> monoCompleteChat(@RequestBody AgentChatRequest
-  // agentChatRequest) {
-  // return agentService.agentComplete(agentChatRequest.getPrompt());
-  // }
 
 }

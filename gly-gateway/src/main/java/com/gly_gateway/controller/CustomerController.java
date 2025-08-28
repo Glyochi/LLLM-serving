@@ -9,11 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gly_gateway.model.Customer;
-import com.gly_gateway.service.CustomerService;
+import com.gly_gateway.model.domain.Customer;
+import com.gly_gateway.service.domain.CustomerService;
 
 import reactor.core.publisher.Mono;
-import inference.GrpcService.ModelInferRequest;
 
 @SpringBootApplication
 @RestController

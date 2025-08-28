@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.gly_gateway.exception.InferenceFailedException;
-import com.gly_gateway.exception.ValidationException;
+import com.gly_gateway.exception.triton.InferenceFailedException;
+import com.gly_gateway.exception.triton.ValidationException;
 
 @RestControllerAdvice
 public class GlobalErrorHandler {

@@ -1,4 +1,4 @@
-package com.gly_gateway.exception;
+package com.gly_gateway.exception.triton;
 
 public class RuntimeException extends Exception {
 

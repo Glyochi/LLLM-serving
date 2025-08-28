@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gly_gateway.model.Order;
-import com.gly_gateway.service.OrderService;
+import com.gly_gateway.model.domain.Order;
+import com.gly_gateway.service.domain.OrderService;
 
 import reactor.core.publisher.Mono;
 

@@ -1,9 +1,9 @@
-package com.gly_gateway.exception;
+package com.gly_gateway.exception.triton;
 
 public class ValidationException extends Exception {
 
   public ValidationException() {
-    super("Something went wrong while inferencing.");
+    super("Invalid input paramaters.");
   }
 
   public ValidationException(String message) {

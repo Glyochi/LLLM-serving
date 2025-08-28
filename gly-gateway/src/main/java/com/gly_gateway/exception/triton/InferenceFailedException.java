@@ -1,9 +1,9 @@
-package com.gly_gateway.exception;
+package com.gly_gateway.exception.triton;
 
 public class InferenceFailedException extends Exception {
 
   public InferenceFailedException() {
-    super("Something went wrong while inferencing.");
+    super("Something went wrong on Triton.");
   }
 
   public InferenceFailedException(String message) {

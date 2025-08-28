@@ -1,15 +1,36 @@
+# Install Java
+sudo apt install default-jdk
+sudo apt install openjdk-17-jdk
+
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=$PATH:$JAVA_HOME/bin
+
+
+# Install maven
+wget https://dlcdn.apache.org/maven/maven-3/3.8.9/binaries/apache-maven-3.8.9-bin.tar.gz 
+tar -xvf ...
+sudo mv apache-maven-3.8.9/ /opt/maven
+
+export M2_HOME=/opt/maven
+export MAVEN_HOME=/opt/maven
+export PATH=${M2_HOME}/bin:${PATH}
+
+
 # How to run application
 mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
 ./mvnw spring-boot:run
 
+
 # How to run test
 ./mvnw test
+
 
 # What are beans
 - `https://www.reddit.com/r/SpringBoot/comments/y8xitr/what_beans_exactly_are/`
 - Called at startup to initialize a singleton instance, for each @Bean
 - Only inject those singletons to other @Bean function or constructors of @Service, @Component, @Controller,...
 - Setter/Field inejection also work but need @Autowired
+
 
 # Reactor/Webflux reads
 - Concurrency and event loop
@@ -24,7 +45,7 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
         is registered and the task gave up its time on the main thread for the `event loop` to execute again.
         - when publisher and subscriber idles (no data flows), it DOES yield
         - UNLIKE GEVENT, OS blocking calls DO NOT yield
-    - [Comparisions]
+    - [Comparisons]
         - The difference seems to be how gevent monkey patched all OS blocking functions approach vs Flux/Mono as signifier 
         - It seems that the implementation is very similar to python event loop/gevent
         => cooperative-like pretty much, just different in when it does and does not yield
@@ -50,10 +71,11 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
 - GRPC code explained `https://www.youtube.com/watch?v=zCXN4wj0uPo`
 - GRPC interface refer to `inference-server` README.md + `postman collection`
 
+
 # Triton GRPC good to know
 - More on `raw_input_contents/raw_output_contents` or `Tensor data` here `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/protocol/extension_binary_data.html?utm_source=chatgpt.com`
 - `InferInputTensor` includes
-    - [ALWAYS] metadata (name, shape, datatype)
+    - [ALWAYS] metadata (name, shape [B, C] where `B` for batch and `C` for element per request, datatype)
     - [MAYBE, PREFERABLY NOT] data
 - `InferOutputTensor` includes
     - [ALWAYS] metadata (name, shape, datatype)
@@ -63,9 +85,11 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
     - first 4 bytes are for unsigned int, little-endian, for the length of bytes of data following it
 - `triton_final_response` in params in output isn't on by default. Triton don't waste extra message for performance reason.
 
+
 # Nvim - Lsp - jdtls
 - Add `target/generated-sources/protobuf/java` as one of the source directories following this `https://www.baeldung.com/maven-add-src-directories`
 - The application was serving fine? I guess it was only for LSP
+
 
 # Error Handling
 - Goal is RFC 9457 compliant `https://www.rfc-editor.org/rfc/rfc9457.html#name-json-schema-for-http-proble`
@@ -76,17 +100,45 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
     - Includes some hacky way of intercepting `jarkata` validation to return a formatted error
     - Support for `custom exceptions`
 
+
 # Structure
+Consumers will never access the 
+*any_folder/
+├── api/ (Interfaces/Contracts for consumers)
+│   ├── obj_interface (What the obj do)
+│   └── objRegistry_interface (What the registry do - usually supply obj given some obj's id)
+├── core/ (Shared building blocks for case specific implementations)
+│   ├── obj_abstract_base (Shared base implementations)
+│   └── objRegistry_base (Registry implementation, usually sufficient at this point because don't have variant of objRegistry. Tho it is possible)
+└── impl/ (Case specific implementations)
+    └── obj_variant (variant implementation)
+
+
 gly-gateway/
 ├── pom.xml
 ├── src/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/
-│   │   │       └── gly-gateway/
-│   │   │           └── Controller    
-│   │   │               ├── MySpringBootAppApplication.java
-│   │   │               └── ... (other Java classes)
+│   │   │       └── gly_gateway/
+│   │   │           ├── Main.java
+│   │   │           ├── config/ (configurations)
+│   │   │           ├── exception/
+│   │   │           ├── model/ 
+│   │   │           ├── repository/
+│   │   │           ├── controller/    
+│   │   │           │   ├── dto/ (classes/records for Controllers input typing) 
+│   │   │           │   └── controllerClass.java    
+│   │   │           ├── chat_template/ (LLM models chat template formatting)
+│   │   │           │   ├── api/ 
+│   │   │           │   └── impl/
+│   │   │           └── service/ 
+│   │   │               ├── domain/ (Business logic services)
+│   │   │               └── triton/ (Triton specific services)
+│   │   │                   ├── config/ (Model specific configs)
+│   │   │                   ├── api/
+│   │   │                   ├── core/
+│   │   │                   └── impl/
 │   │   ├── resources/
 │   │   │   └── application.properties (or application.yml)
 │   │   │   └── ... (other resources)

@@ -1,5 +1,6 @@
-package com.gly_gateway.model;
+package com.gly_gateway.model.triton;
 
+import com.gly_gateway.model.triton.Role;
 import jakarta.validation.constraints.NotNull;
 
 public class MessageData {
@@ -9,7 +10,7 @@ public class MessageData {
   @NotNull
   final String content;
 
-  MessageData(Role role, String content) {
+  public MessageData(Role role, String content) {
     this.role = role;
     this.content = content;
   }

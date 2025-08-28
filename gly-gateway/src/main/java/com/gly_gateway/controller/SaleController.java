@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gly_gateway.service.SaleService;
+import com.gly_gateway.service.domain.SaleService;
 
 import reactor.core.publisher.Mono;
 

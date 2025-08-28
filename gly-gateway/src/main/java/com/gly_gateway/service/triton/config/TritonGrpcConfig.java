@@ -1,7 +1,9 @@
-package com.gly_gateway.config;
+package com.gly_gateway.service.triton.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceStub;
+import inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceFutureStub;
 
 import io.grpc.ManagedChannel;
 
@@ -19,16 +21,15 @@ public class TritonGrpcConfig {
         .build();
   }
 
-  // These two stubs will share the same channel because BEANNNN + IoC
-  
+  // These two stubs will share the same channel because BEANNNN + IoC  
   @Bean
-  public inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceStub tritonAsyncStub(
+  public GRPCInferenceServiceStub tritonAsyncStub(
       ManagedChannel channel) {
     return inference.GRPCInferenceServiceGrpc.newStub(channel);
   }
 
   @Bean
-  public inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceFutureStub tritonFutureStub(
+  public GRPCInferenceServiceFutureStub tritonFutureStub(
       ManagedChannel channel) {
     return inference.GRPCInferenceServiceGrpc.newFutureStub(channel);
   }
