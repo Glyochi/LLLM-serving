@@ -1,12 +1,14 @@
 
-base_path="/opt/tritonserver/projects"
-script_path="$base_path/tensorrtllm_backend/tensorrt_llm/examples"
+### v0.12.0
 
-tmp_dir="$base_path/tmp"
-output_dir="$base_path/engines"
-
-mkdir -p $tmp_dir
-mkdir -p $output_dir
+#base_path="/opt/tritonserver/projects"
+#script_path="$base_path/tensorrtllm_backend/tensorrt_llm/examples"
+#
+#tmp_dir="$base_path/tmp"
+#output_dir="$base_path/engines"
+#
+#mkdir -p $tmp_dir
+#mkdir -p $output_dir
 
 # model_dir="$base_path/checkpoints/llama-7b"
 # FP16
@@ -32,22 +34,57 @@ mkdir -p $output_dir
 
 
 
-# GEMMA
-model_dir="$base_path/checkpoints/gemma-2b-it"
-CKPT_PATH=$tmp_dir/models/gemma_nv/checkpoints/tmp_2b_it
-UNIFIED_CKPT_PATH=$tmp_dir/checkpoints/tmp_2b_it_tensorrt_llm/bf16/tp1/
+# GEMMA 2
+# model_dir="$base_path/checkpoints/gemma-2b-it"
+# CKPT_PATH=$tmp_dir/models/gemma_nv/checkpoints/tmp_2b_it
+# UNIFIED_CKPT_PATH=$tmp_dir/checkpoints/tmp_2b_it_tensorrt_llm/bf16/tp1/
+# 
+# python3 $script_path/gemma/convert_checkpoint.py \
+#     --ckpt-type hf \
+#     --model-dir ${model_dir} \
+#     --dtype float16 \
+#     --world-size 1 \
+#     --output-model-dir ${UNIFIED_CKPT_PATH}
+# 
+# 
+# ### Build engine
+# 
+# ENGINE_PATH=$output_dir/gemma/2B/bf16/1-gpu/
+# trtllm-build --checkpoint_dir ${UNIFIED_CKPT_PATH} \
+#              --gemm_plugin auto \
+#              --max_batch_size 8 \
+#              --max_input_len 3000 \
+#              --max_seq_len 3100 \
+#              --output_dir ${ENGINE_PATH}
 
-python3 $script_path/gemma/convert_checkpoint.py \
+
+### v1.0
+
+# GEMMA 3
+# Works for gemma-3-1b-it, but not gemma-3-4b-it. HMMMM
+
+base_path="/opt/tritonserver/projects"
+script_path="$base_path/tensorrtllm_backend/tensorrt_llm/examples/models/core/gemma"
+
+tmp_dir="$base_path/tmp"
+output_dir="$base_path/engines"
+
+mkdir -p $tmp_dir
+mkdir -p $output_dir
+model_dir="$base_path/checkpoints/gemma-3-4b-it"
+
+CKPT_PATH=$tmp_dir/models/gemma_nv/checkpoints/gemma-3-4b-it
+UNIFIED_CKPT_PATH=$tmp_dir/checkpoints/tmp_1b_it_tensorrt_llm/bf16/tp1/
+ENGINE_PATH=$output_dir/gemma3/4b/bf16/1-gpu/
+VOCAB_FILE_PATH=$model_dir/tokenizer.model
+
+python3 $script_path/convert_checkpoint.py \
     --ckpt-type hf \
     --model-dir ${model_dir} \
-    --dtype float16 \
+    --dtype bfloat16 \
     --world-size 1 \
     --output-model-dir ${UNIFIED_CKPT_PATH}
 
-
-### Build engine
-
-ENGINE_PATH=$output_dir/gemma/2B/bf16/1-gpu/
 trtllm-build --checkpoint_dir ${UNIFIED_CKPT_PATH} \
              --gemm_plugin auto \
              --max_batch_size 8 \
@@ -55,3 +92,9 @@ trtllm-build --checkpoint_dir ${UNIFIED_CKPT_PATH} \
              --max_seq_len 3100 \
              --output_dir ${ENGINE_PATH}
 
+python3 $script_path/../../../summarize.py --test_trt_llm \
+                      --vocab_file ${VOCAB_FILE_PATH} \
+                      --engine_dir ${ENGINE_PATH} \
+                      --batch_size 1 \
+                      --max_ite 5 \
+                      --max_attention_window_size 512 512 512 512 512 3100

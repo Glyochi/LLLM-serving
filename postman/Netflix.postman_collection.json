@@ -1,0 +1,332 @@
+{
+	"info": {
+		"_postman_id": "92d56524-866d-45df-a436-622354c858d6",
+		"name": "Netflix",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26048243"
+	},
+	"item": [
+		{
+			"name": "Triton",
+			"item": [
+				{
+					"name": "generate",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"text_input\": \"What is machine learning?\",\r\n    \"max_tokens\": 100,\r\n    \"bad_words\": \"\",\r\n    \"stop_words\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{triton-endpoint}}/v2/models/{{model-name}}/generate",
+							"protocol": "http",
+							"host": [
+								"{{triton-endpoint}}"
+							],
+							"path": [
+								"v2",
+								"models",
+								"{{model-name}}",
+								"generate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "gly-gateway",
+			"item": [
+				{
+					"name": "entry point",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{gateway-endpoint}}",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "customer/create",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"glee\",\r\n    \"job\": \"hobo\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway-endpoint}}/customer/create",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"customer",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "order/create",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customerId\": \"68a117a687085850b8fa899d\",\r\n    \"total\": 1100,\r\n    \"discount\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gateway-endpoint}}/order/create",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"order",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "customer/id",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway-endpoint}}/customer/find-by-id?customerId=68a1162887085850b8fa899b",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"customer",
+								"find-by-id"
+							],
+							"query": [
+								{
+									"key": "customerId",
+									"value": "68a1162887085850b8fa899b"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "order/id",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway-endpoint}}/order/find-by-id?orderId=68a11ddb7de5bb5ee20e9811",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"order",
+								"find-by-id"
+							],
+							"query": [
+								{
+									"key": "orderId",
+									"value": "68a11ddb7de5bb5ee20e9811"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sale/summary",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway-endpoint}}/sale/summary",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"sale",
+								"summary"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/complete",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/complete",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/stream-complete",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/complete",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/stream-complete Copy",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/complete",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "postman",
+			"item": [
+				{
+					"name": "post man sse",
+					"protocolProfileBehavior": {
+						"protocolVersion": "http2"
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "postman-echo.com/server-events/:numberOfEvents",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"server-events",
+								":numberOfEvents"
+							],
+							"variable": [
+								{
+									"key": "numberOfEvents",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

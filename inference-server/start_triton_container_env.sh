@@ -16,7 +16,8 @@ docker run --rm -it --net host --shm-size=4g \
     -v $checkpoints_path:$home_path/checkpoints \
     -v $build_script_path:$home_path/scripts \
     -v $model_repo:$home_path/model-repository \
-    gemma-triton-server
+    gemma-3-triton-server
+    #gemma-triton-server
     #llama-triton-server
 # docker run --rm -it --net host --shm-size=4g \
 #     --ulimit memlock=-1 --ulimit stack=67108864 --gpus all \

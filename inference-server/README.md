@@ -3,6 +3,15 @@
 
 # General Requirements
 - Nvidia Drivers + Nvidia-container-toolkit + tritonserver container 
+- Cloned repos of tensorrtllm_backend and tensorrt_llm (should be a folder in tensorrtllm_backend)
+    - tensorrtllm_backend (latest, doesnt seem to matter that much) `https://github.com/triton-inference-server/tensorrtllm_backend`
+    - tensorrt_llm (latest at the time v0.21.0) `https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.21.0`
+        - Needed for
+            - building .engines files
+                - It's model family specific so navigate to `/tensorrtllm_backend/tensorrt_llm/example/models/core/{model_family}/README.md`
+            - triton_backend folder for `model-repository`, which has
+                - config.pbtxt files (ensemble, preprocessing, postprocessing, tensorrt_llm, tensorrt_llm_bls)
+                - fill_template.py in tools
 
 # Project structure 
 - scripts: helpful scripts
