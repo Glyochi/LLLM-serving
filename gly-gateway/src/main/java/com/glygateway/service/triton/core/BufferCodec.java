@@ -3,6 +3,7 @@ package com.glygateway.service.triton.core;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 import com.google.protobuf.ByteString;
@@ -10,10 +11,10 @@ import com.google.protobuf.ByteString;
 @Component
 public abstract class BufferCodec {
 
-  public static ByteString encodeStringToBytes(String text) {
+  public static ByteString encodeStringToBytes(String textToken) {
     // BYTES encoding: [uint32 / 4 bytes for data length][bytes of text] repeated;
     // little-endian
-    var text_bytes = text.getBytes(StandardCharsets.UTF_8);
+    var text_bytes = textToken.getBytes(StandardCharsets.UTF_8);
     int total = 4 + text_bytes.length;
 
     ByteBuffer buf = ByteBuffer.allocate(total).order(ByteOrder.LITTLE_ENDIAN);

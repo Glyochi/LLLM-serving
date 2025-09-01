@@ -8,16 +8,14 @@ public class InferenceParams {
   @NotNull
   final ModelId modelId;
 
-  @NotNull
-  final int maxTokens;
+  final Integer maxTokens;
 
-  @Nullable
   final Float temperature;
 
   @Nullable
   final Boolean stream;
 
-  public InferenceParams(int maxTokens, Float temperature, ModelId modelId, boolean stream) {
+  public InferenceParams(Integer maxTokens, Float temperature, ModelId modelId, boolean stream) {
     this.modelId = modelId;
     this.maxTokens = maxTokens;
     this.temperature = temperature;

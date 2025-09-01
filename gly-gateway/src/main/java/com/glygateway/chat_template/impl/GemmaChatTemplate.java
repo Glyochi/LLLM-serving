@@ -33,6 +33,10 @@ public class GemmaChatTemplate implements ChatTemplate {
     return ModelId.Gemma;
   }
 
+  public List<String> stopTokens() {
+    return List.of(EOT);
+  }
+
   public String applyTemplate(String prompt) throws ValidationException{
     return applyTemplate(new Conversation(List.of(new MessageData(Role.USER, prompt)))); 
   }
@@ -56,8 +60,10 @@ public class GemmaChatTemplate implements ChatTemplate {
       result.append(EOT);
     }
     result.append(SOT);
-    result.append(convertRoleToString(Role.USER));
+    result.append(convertRoleToString(Role.ASSISTANT));
 
+    System.out.println(String.format("[%s] Chat template applied", modelId()));
+    System.out.println(result.toString());
     return result.toString();
   }
 

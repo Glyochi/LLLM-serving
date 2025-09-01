@@ -121,10 +121,11 @@ gly-gateway/
 │   │   ├── java/
 │   │   │   └── com/
 │   │   │       └── glygateway/
-│   │   │           ├── Main.java
-│   │   │           ├── config/ (configurations)
+│   │   │           ├── Main.java (Configured to scans configs from all over the directory - No need to create Beans for those configs)
 │   │   │           ├── exception/
 │   │   │           ├── model/ 
+│   │   │           │   ├── domain/ (Business logic models)
+│   │   │           │   └── triton/ (Triton specific models/enums)
 │   │   │           ├── repository/
 │   │   │           ├── controller/    
 │   │   │           │   ├── dto/ (classes/records for Controllers input typing) 
@@ -136,15 +137,17 @@ gly-gateway/
 │   │   │               ├── domain/ (Business logic services)
 │   │   │               └── triton/ (Triton specific services)
 │   │   │                   ├── config/ (Model specific configs)
+│   │   │                   │   └── ModelConfig.java (record objects loaded from `application.yml`)
 │   │   │                   ├── api/
 │   │   │                   ├── core/
 │   │   │                   └── impl/
 │   │   ├── resources/
-│   │   │   └── application.properties (or application.yml)
+│   │   │   ├── application.properties (hosting configs)
+│   │   │   ├── application.yml (model configs)
 │   │   │   └── ... (other resources)
 │   │   └── proto/  <- This is where triton .proto files go
-│   │       └── grpc_service.proto
-│   │       └── model_config.proto
+│   │       ├── grpc_service.proto
+│   │       ├── model_config.proto
 │   │       └── health.proto
 │   └── test/
 │       └── ... (test related code and resources)

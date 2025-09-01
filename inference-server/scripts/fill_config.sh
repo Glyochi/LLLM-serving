@@ -42,7 +42,7 @@
 
 # Works for tensorrt_llm v0.21.0
 
-MODEL_NAME="gemma-2b-it"
+MODEL_NAME="gemma-3-1b-it"
 BASE_PATH="/home/gly/projects/netflix/inference-server"
 DOCKER_BASE_PATH="/opt/tritonserver/projects"
 DOCKER_MODEL_DIRECTORY="$DOCKER_BASE_PATH/model-repository"

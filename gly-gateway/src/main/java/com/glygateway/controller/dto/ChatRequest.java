@@ -9,19 +9,3 @@ public record ChatRequest(
     @Valid @NotNull Conversation conversation,
     @Valid @NotNull InferenceParams inferenceParams) {
 }
-// public class ChatRequest {
-// @Valid
-// @NotNull
-// Conversation conversation;
-// @Valid
-// @NotNull
-// InferenceParams inferenceParams;
-//
-// public Conversation getConversation() {
-// return conversation;
-// }
-//
-// public InferenceParams getInferenceParams() {
-// return inferenceParams;
-// }
-// }

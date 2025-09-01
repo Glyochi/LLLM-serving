@@ -14,7 +14,8 @@ import com.glygateway.model.triton.Role;
 @Component
 public class Gemma3ChatTemplate implements ChatTemplate {
 
-  private final String BOS = "<bos>";
+  // Gemma 3 has no BOS token
+  private final String BOS = "";
   private final String SOT = "<start_of_turn>";
   private final String EOT = "<end_of_turn>\n";
 
@@ -35,8 +36,12 @@ public class Gemma3ChatTemplate implements ChatTemplate {
     return ModelId.Gemma3;
   }
 
-  public String applyTemplate(String prompt) {
-    return "";
+  public List<String> stopTokens() {
+    return List.of(EOT);
+  }
+
+  public String applyTemplate(String prompt) throws ValidationException {
+    return applyTemplate(new Conversation(List.of(new MessageData(Role.USER, prompt)))); 
   }
 
   @Override
@@ -58,16 +63,18 @@ public class Gemma3ChatTemplate implements ChatTemplate {
         throw new ValidationException(String.format("[%s] Invalid conversation. Conversation roles must alternate (system - not required)/user/assistant/user/assistant", modelId()));
       }
       result.append(SOT);
+      result.append(convertRoleToString(current_message.getRole()));
       if (i == 0) {
         result.append(first_user_prefix);
       }
-      result.append(convertRoleToString(current_message.getRole()));
       result.append(current_message.getContent());
       result.append(EOT);
     }
     result.append(SOT);
-    result.append(convertRoleToString(Role.USER));
+    result.append(convertRoleToString(Role.ASSISTANT));
 
+    System.out.println(String.format("[%s] Chat template applied", modelId()));
+    System.out.println(result.toString());
     return result.toString();
   }
 
