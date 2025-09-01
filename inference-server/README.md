@@ -9,7 +9,7 @@
 - Nvidia Drivers + Nvidia-container-toolkit + tritonserver container 
 - Cloned repos of tensorrtllm_backend and tensorrt_llm (should be a folder in tensorrtllm_backend)
     - tensorrtllm_backend (latest, doesnt seem to matter that much) `https://github.com/triton-inference-server/tensorrtllm_backend`
-    - tensorrt_llm (latest at the time v0.21.0) `https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.21.0`
+    - tensorrt_llm (latest at the time `v0.21.0`) `https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.21.0`
         - Needed for
             - building .engines files
                 - It's model family specific so navigate to `/tensorrtllm_backend/tensorrt_llm/example/models/core/{model_family}/README.md`
@@ -71,7 +71,7 @@ Need to configure `config.pbtxt` file in the `model_repository`
         - Right now it only support `sp model` (`https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tensorrtllm_backend/docs/gemma.html`) 
       - [Notes] sometimes, there's a missing `parameter` in one of the config file => script crash. Just add it in the source file and that should works.
       - Set up tensorrtllm_backend and pull with git lfs so we have skeleton config.pbtxt
-  - Folder structure for gemma-2b-it:
+  - Folder structure for `single model deployment`:
       - model-repository/
           - tensorrt_llm_bls/
               - 1/
@@ -98,6 +98,41 @@ Need to configure `config.pbtxt` file in the `model_repository`
                   - engines/ `# TRT-LLM engine_dir produced by build`
                       - config.json
                       - rank0.engine (or more) `# Built engine file for gemma-2b-it`
+    - For `multiple model deployment`, it's a little bit more tricky
+        - Triton treats each of these `preprocessing`, `postprocessing`, etc... folder as `one model`, which could run on singular instance or multiple instances (For single gpu 1 instance is usually good enough)
+        - These `models` need to have the same name for
+            - name of the model in config.pbtxt
+            - folder name
+            - For example, if i have custom folder called `gemma-gly-preprocessing`, that will be come the model name, and it has to be the same inside config.pbtxt file inside that folder
+        - `tensorrt_llm_bls` is in charged of coordinating all these models into a pipeline, so it needs to get the correct model names
+            - You can change the `field tensorrt_llm_model_name` in the config.pbtxt file to point to the correct custom model for inferencing (say `gemma-gly-tensorrt_llm`)
+            - BUT YOU CANNOT change the fields for `preprocessing` and `postprocessing`, they are hardcoded in the mode.py file for `tensorrt_llm_bls`
+                - You could modify the mode.py file to add two new fields in config.pbtxt (Doable)
+                - I went with just swapping out the hardcoded values in the `fill_config.sh` script. 
+                    - It's the easier way as I don't have to worry about changing the code and keeping track if my source file model.py is the default one or my modified version
+                    - Also its like 5 more lines of code compared to ehhh
+        - There's also another option to make triton takes in multiple model-repository.
+            - Haven't explored this yet, but likely gonna run into the same naming issues (Could be wrong), given that to do inference you have to specified the custom model name
+        - model-repository/ (MOSTLY THE SAME OTHER THAN THE FOLDER NAME/CUSTOM MODEL NAME)
+            - gemma-gly-tensorrt_llm_bls/
+                - 1/
+                    - model.py `# Orchestrates the loop & streaming`
+                - config.pbtxt
+            - gemma-gly-preprocessing/
+                - 1/
+                    - model.py `# Tokenizer (HF AutoTokenizer)`
+                config.pbtxt
+            - gemma-gly-tensorrt_llm/
+                - 1/ `# (empty here; engines live outside under _assets)`
+                - config.pbtxt
+            - gemma-gly-postprocessing/
+                - 1/
+                    - model.py `# Detokenizer`
+                - config.pbtxt
+            - other-custom-model-names
+            - _assets/
+
+
 
 # Streaming tokens
 - Some pointers here, but no tutorial on grpc request `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tensorrtllm_backend/docs/encoder_decoder.html#run-with-decoupled-mode-streaming`
@@ -179,7 +214,7 @@ Need to configure `config.pbtxt` file in the `model_repository`
     - T5 model
     - Pytorch blog post claims Medusa speculative heads is more affective in term of quality/latency gains than using draft models `https://pytorch.org/blog/hitchhikers-guide-speculative-decoding/`
     - Triton recommended EAGLE over MEDUSA for 1.6x speedup + 0.8 over 0.6 accuracy `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tutorials/Feature_Guide/Speculative_Decoding/TRT-LLM/README.html#medusa`
-- Triton/GPU terminology
+- `Triton/GPU terminology`
     - Scheduler: a request router, which routes to instances
         - Dynamic batching
     - Instance: an executor, with its own weights/workspace/KV cache, running on its own CUDA stream
