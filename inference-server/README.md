@@ -1,5 +1,9 @@
 # Following this guide
-- https://github.com/triton-inference-server/tutorials/blob/main/Popular_Models_Guide/Llama2/trtllm_guide.md
+- `https://github.com/triton-inference-server/tutorials/blob/main/Popular_Models_Guide/Llama2/trtllm_guide.md`
+- Good read `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/getting_started/trtllm_user_guide.html`
+    - KV cache management and KV cache reused
+    - Triton Decoding strategy + spec decoding
+    
 
 # General Requirements
 - Nvidia Drivers + Nvidia-container-toolkit + tritonserver container 
@@ -172,7 +176,20 @@ Need to configure `config.pbtxt` file in the `model_repository`
     - How does a big model `validate?` the accuracy of the generated tokens from draft models/speculative heads. Need more reading.
     - EAGLE (draft models)
     - MEDUSA (need to train the speculative heads)
+    - T5 model
     - Pytorch blog post claims Medusa speculative heads is more affective in term of quality/latency gains than using draft models `https://pytorch.org/blog/hitchhikers-guide-speculative-decoding/`
     - Triton recommended EAGLE over MEDUSA for 1.6x speedup + 0.8 over 0.6 accuracy `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/tutorials/Feature_Guide/Speculative_Decoding/TRT-LLM/README.html#medusa`
+- Triton/GPU terminology
+    - Scheduler: a request router, which routes to instances
+        - Dynamic batching
+    - Instance: an executor, with its own weights/workspace/KV cache, running on its own CUDA stream
+        - With multiple instances, triton splits traffic accross them.
+        - With LLM, the model has instances such as
+            - preprocessing (CPU)
+            - tensorrt_llm (GPU)
+            - postprocessing (CPU)
+            - tensorrt_llm_bls or ensemble (CPU)
+        - Each existing as 1 instance. And for single gpu 1 instance is good enough. Should use batching or in-flight/continous batching to increase throughput
+    - 
 
 # GEN AI for benchmarking

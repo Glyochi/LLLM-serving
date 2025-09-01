@@ -1,11 +1,12 @@
+
 package com.gly_gateway.service.triton.impl;
 
 import java.util.Random;
 
 import org.springframework.stereotype.Component;
 
-import com.gly_gateway.chat_template.impl.GemmaChatTemplate;
-import com.gly_gateway.service.triton.config.GemmaConfig;
+import com.gly_gateway.chat_template.impl.Gemma3ChatTemplate;
+import com.gly_gateway.service.triton.config.Gemma3Config;
 import com.gly_gateway.exception.triton.ValidationException;
 import com.gly_gateway.model.triton.Conversation;
 import com.gly_gateway.model.triton.InferenceParams;
@@ -18,13 +19,13 @@ import reactor.core.publisher.Flux;
 import com.gly_gateway.model.triton.ModelId;
 
 @Component
-public class GemmaAdapter extends AbstractModelAdapter {
-  private final GemmaChatTemplate chatTemplate;
+public class Gemma3Adapter extends AbstractModelAdapter {
+  private final Gemma3ChatTemplate chatTemplate;
   private final TritonClientFacade triton;
-  private final GemmaConfig config;
+  private final Gemma3Config config;
 
-  public GemmaAdapter(GemmaChatTemplate chatTemplate,
-      TritonClientFacade triton, GemmaConfig config) {
+  public Gemma3Adapter(Gemma3ChatTemplate chatTemplate,
+      TritonClientFacade triton, Gemma3Config config) {
     super();
     this.chatTemplate = chatTemplate;
     this.triton = triton;
@@ -33,7 +34,7 @@ public class GemmaAdapter extends AbstractModelAdapter {
 
   @Override
   public ModelId modelId() {
-    return ModelId.Gemma;
+    return ModelId.Gemma3;
   }
 
   @Override

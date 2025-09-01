@@ -85,6 +85,7 @@ python3 $script_path/convert_checkpoint.py \
     --world-size 1 \
     --output-model-dir ${UNIFIED_CKPT_PATH}
 
+# --tokens_per_block matters for kvcache optimization
 trtllm-build --checkpoint_dir ${UNIFIED_CKPT_PATH} \
              --gemm_plugin auto \
              --max_batch_size 8 \

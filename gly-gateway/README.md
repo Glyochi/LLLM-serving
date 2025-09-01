@@ -1,8 +1,8 @@
 # Install Java
 sudo apt install default-jdk
-sudo apt install openjdk-17-jdk
+sudo apt install openjdk-21-jdk
 
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 export PATH=$PATH:$JAVA_HOME/bin
 
 

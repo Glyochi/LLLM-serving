@@ -8,8 +8,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import com.gly_gateway.model.Customer;
-import com.gly_gateway.model.Order;
+import com.gly_gateway.model.domain.Customer;
+import com.gly_gateway.model.domain.Order;
 
 import reactor.core.publisher.Mono;
 

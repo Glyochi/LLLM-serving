@@ -1,4 +1,4 @@
-package com.gly_gateway.model;
+package com.gly_gateway.model.domain;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

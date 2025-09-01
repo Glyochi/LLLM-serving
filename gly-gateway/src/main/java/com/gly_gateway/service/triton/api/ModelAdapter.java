@@ -4,11 +4,12 @@ import reactor.core.publisher.Flux;
 
 import com.gly_gateway.model.triton.Conversation;
 import com.gly_gateway.model.triton.InferenceParams;
+import com.gly_gateway.model.triton.ModelId;
 import com.gly_gateway.exception.triton.ValidationException;
 import inference.GrpcService.ModelInferRequest;
 
 public interface ModelAdapter {
-  String modelId(); // e.g., "gemma-2b-it"
+  ModelId modelId(); // e.g., "gemma-2b-it"
   // boolean supports(ModelType type); // or by name
 
   // Build request to backend from a normalized conversation

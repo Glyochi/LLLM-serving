@@ -1,0 +1,13 @@
+gly_gateway:
+  models:
+    gemma:
+      id: gemma-2b-it_tensorrt_llm_bls
+      max-tokens: 256
+      temperature: 1.0
+      top-p: 0.95
+    gemma3:
+      id: gemma-3-b-it_tensorrt_llm_bls
+      max-tokens: 256
+      temperature: 1.0
+      top-p: 0.95
+

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class InferenceParams {
   @NotNull
-  final String modelId;
+  final ModelId modelId;
 
   @NotNull
   final int maxTokens;
@@ -17,14 +17,14 @@ public class InferenceParams {
   @Nullable
   final Boolean stream;
 
-  public InferenceParams(int maxTokens, Float temperature, String modelId, boolean stream) {
+  public InferenceParams(int maxTokens, Float temperature, ModelId modelId, boolean stream) {
     this.modelId = modelId;
     this.maxTokens = maxTokens;
     this.temperature = temperature;
     this.stream = stream;
   }
 
-  public String getModelId() {
+  public ModelId getModelId() {
     return modelId;
   }
 

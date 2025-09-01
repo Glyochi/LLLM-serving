@@ -1,5 +1,6 @@
 package com.gly_gateway.service.triton.core;
 
+import com.gly_gateway.model.triton.ModelId;
 import com.gly_gateway.exception.triton.ValidationException;
 import com.gly_gateway.service.triton.api.ModelAdapter;
 import com.gly_gateway.service.triton.api.ModelAdapterRegistry;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class DefaultModelAdapterRegistry implements ModelAdapterRegistry {
-  private final Map<String, ModelAdapter> byId;
+  private final Map<ModelId, ModelAdapter> byId;
 
   public DefaultModelAdapterRegistry(List<ModelAdapter> adapters) {
     this.byId = adapters.stream()
@@ -20,7 +21,7 @@ public class DefaultModelAdapterRegistry implements ModelAdapterRegistry {
   }
 
   @Override
-  public ModelAdapter forModelId(String modelId) throws ValidationException {
+  public ModelAdapter forModelId(ModelId modelId) throws ValidationException {
     var adapter = byId.getOrDefault(modelId, null);
     if (adapter == null) {
       throw new ValidationException("Unknown modelId: " + modelId);
