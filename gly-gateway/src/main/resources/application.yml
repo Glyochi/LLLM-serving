@@ -1,4 +1,4 @@
-gly_gateway:
+glygateway:
   models:
     gemma:
       id: gemma-2b-it_tensorrt_llm_bls

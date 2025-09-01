@@ -120,7 +120,7 @@ gly-gateway/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/
-│   │   │       └── gly_gateway/
+│   │   │       └── glygateway/
 │   │   │           ├── Main.java
 │   │   │           ├── config/ (configurations)
 │   │   │           ├── exception/
