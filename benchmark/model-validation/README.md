@@ -1,14 +1,16 @@
 # Model validation
 ## Methodology
 - To validate the models hosted by triton, we need to compare their outputs with some sort of ground truth
-- I decided we go with hosting a model using `transformers` library, example came straight from `huggingface` (`https://huggingface.co/google/gemma-3-1b-it`)
+- I decided we go with hosting a model using `transformers` library 
     - It's the easiest approach
     - Can compare both `template correctness` and `output correctness`
 
 ## Set up 
 - [model_specific]_custom_handler_requirements.txt
-    - Models might have different dependencies. It's best to keep the separated
-- [model_specific]_custom_handler.py
+    - Models might have different dependencies. It's best to keep them separated
+- [model_specific]_custom_handler.py 
+    - Custom handler for inference endpoint (cloud) if you want it on the cloud `https://huggingface.co/docs/inference-endpoints/en/guides/custom_handler`
+    - Gemma 3 example `https://huggingface.co/google/gemma-3-1b-it`
     - Load models from HF checkpoint
     - Apply template on the inputs
     - Set the seed to maintain reproducibility
