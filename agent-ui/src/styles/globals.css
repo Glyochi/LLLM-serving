@@ -1,0 +1,24 @@
+@import "tailwindcss/preflight"
+@tailwind utilities;
+
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply bg-bg text-fg antialiased; }
+
+  /* typography rhythm (edit to taste) */
+  h1 { @apply text-2xl font-semibold leading-tight; }
+  h2 { @apply text-xl font-semibold leading-snug; }
+  p  { @apply leading-relaxed; }
+
+  /* selections & focus */
+  ::selection { @apply bg-accent text-accent-foreground; }
+  a { @apply text-primary hover:underline; }
+  button:focus-visible, a:focus-visible { @apply outline-none ring-2 ring-ring; }
+
+  /* form primitives */
+  input, textarea, select {
+    @apply bg-muted text-fg border rounded-xl px-3 py-2;
+  }
+}
+
