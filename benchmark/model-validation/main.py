@@ -1,7 +1,7 @@
 import os
 import json
 import tempfile
-from gemma_3_1b_it_customer_handler import Gemma_3_1b_it_Handler
+from gemma_3_1b_it_custom_handler import Gemma_3_1b_it_Handler
 from tqdm import tqdm
 
 
