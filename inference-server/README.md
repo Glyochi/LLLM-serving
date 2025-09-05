@@ -7,7 +7,11 @@
 
 # General Requirements
 - Nvidia Drivers + Nvidia-container-toolkit + tritonserver container 
+- base image `nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3`
+    - tensorrt version `10.10.0.31`
+    - tensorrt_llm version `0.20.0`
 - Cloned repos of tensorrtllm_backend and tensorrt_llm (should be a folder in tensorrtllm_backend)
+    - We only need the repos for the scripts, not the run environments
     - tensorrtllm_backend (latest, doesnt seem to matter that much) `https://github.com/triton-inference-server/tensorrtllm_backend`
     - tensorrt_llm (latest at the time `v0.21.0`) `https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v0.21.0`
         - Needed for
