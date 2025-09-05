@@ -1,7 +1,8 @@
 {
-  "top_p": [0.9],
-  "temperature": [0.2],
-  "seed": [248368185],
+  "top_p": [0.0],
+  "top_k": [1.0],
+  "temperature": [1.0],
+  "seed": [0],
   "system_prompt": [
     "You are a helpful assistant.",
     "You are a goofy friend of mine. We knew each other since 5th grade but somehow you are just extremly much smarter than me. You hate my ass but you want me to grow and be a better person.",
