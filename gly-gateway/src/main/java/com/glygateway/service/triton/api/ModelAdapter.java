@@ -13,6 +13,7 @@ public interface ModelAdapter {
   // boolean supports(ModelType type); // or by name
 
   // Build request to backend from a normalized conversation
+  String debugApplyChatTemplate(Conversation agentChatRequest) throws ValidationException;
   ModelInferRequest buildRequest(Conversation agentChatRequest, InferenceParams inferenceParams) throws ValidationException;
 
   // Stream tokens from backend

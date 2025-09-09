@@ -2,6 +2,8 @@ package com.glygateway.chat_template.impl;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.glygateway.chat_template.api.ChatTemplate;
@@ -13,6 +15,8 @@ import com.glygateway.model.triton.Role;
 
 @Component
 public class GemmaChatTemplate implements ChatTemplate {
+
+  private static final Logger log = LoggerFactory.getLogger(GemmaChatTemplate.class);
 
   private final String BOS = "<bos>";
   private final String SOT = "<start_of_turn>";
@@ -62,8 +66,8 @@ public class GemmaChatTemplate implements ChatTemplate {
     result.append(SOT);
     result.append(convertRoleToString(Role.ASSISTANT));
 
-    System.out.println(String.format("[%s] Chat template applied", modelId()));
-    System.out.println(result.toString());
+    log.info(String.format("[%s] Chat template applied", modelId()));
+    log.info(result.toString());
     return result.toString();
   }
 

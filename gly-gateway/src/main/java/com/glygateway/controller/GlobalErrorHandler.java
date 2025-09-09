@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -96,16 +95,6 @@ public class GlobalErrorHandler {
   // ****************************************************************************************
   // Other custom exceptions
   // ****************************************************************************************
-  @ExceptionHandler(NotFoundException.class)
-  public ProblemDetail handleNotFound(NotFoundException ex, ServerWebExchange exchange) {
-    var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-    pd.setType(TYPE_NOT_FOUND);
-    pd.setTitle("Resource not found");
-    pd.setDetail(ex.getMessage());
-    attachCommon(pd, exchange);
-    return pd;
-  }
-
   @ExceptionHandler(InferenceFailedException.class)
   public ProblemDetail handleInferenceFailed(InferenceFailedException ex, ServerWebExchange exchange) {
     var pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);

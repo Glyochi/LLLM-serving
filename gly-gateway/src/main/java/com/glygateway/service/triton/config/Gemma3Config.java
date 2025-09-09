@@ -9,5 +9,6 @@ import jakarta.validation.constraints.NotNull;
 public record Gemma3Config(
     @NotNull @Min(0) int maxTokens,
     @NotNull @Min(0) float temperature,
-    @NotNull @Min(0) float topP) {
+    @NotNull @Min(0) float topP,
+    @NotNull @Min(0) int topK) {
 }
