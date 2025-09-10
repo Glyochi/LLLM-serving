@@ -38,7 +38,7 @@ echo "Running script in $ENVIRONMENT environment."
 mvn compile
 
 if $JAVA_AGENT; then
-  export JAVA_TOOL_OPTIONS="-javaagent:otel/opentelemetry-javaagent.jar"
+  #export JAVA_TOOL_OPTIONS="-javaagent:otel/opentelemetry-javaagent.jar"
   export OTEL_SERVICE_NAME="gly-gateway-otel"
   export OTEL_EXPORTER_OTLP_PROTOCOL="grpc"
   export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
