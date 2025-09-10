@@ -107,37 +107,12 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
-    <!-- Loggings -->
-    <!-- slf4j facade is already present via spring-boot-starter -->
-    <dependency>
-      <groupId>net.logstash.logback</groupId>
-      <artifactId>logstash-logback-encoder</artifactId>
-      <version>7.4</version>
-    </dependency>
+    <!-- Logging -->
 
-    <!-- For Metrics -->
-    <!-- For OTLP -->
-
-    <!-- Brave version -->
-    <!-- For Tracing -->
+    <!-- Tracing -->
     <dependency>
-        <groupId>io.micrometer</groupId>
-        <artifactId>micrometer-tracing-bridge-brave</artifactId>
-    </dependency>
-    <!-- For Latency Visualization -->
-    <!-- For OTLP -->
-    <dependency>
-        <groupId>io.zipkin.contrib.otel</groupId>
-        <artifactId>encoder-brave</artifactId>
-        <version>0.1.0</version>
-    </dependency>
-
-    <!-- For pushing logs out -->
-    <dependency>
-        <groupId>com.github.loki4j</groupId>
-        <artifactId>loki-logback-appender</artifactId>
-        <version>1.5.2</version>
-        <scope>runtime</scope>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-bridge-otel</artifactId>
     </dependency>
 
   </dependencies>

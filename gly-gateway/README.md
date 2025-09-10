@@ -1,3 +1,6 @@
+# Goal
+`https://www.youtube.com/watch?v=XpunFFS-n8I`
+
 # Install Java
 sudo apt install default-jdk
 sudo apt install openjdk-21-jdk
@@ -414,6 +417,10 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 - The application was serving fine? I guess it was only for LSP
 
 
+# Model config
+- Loaded from application.yml
+
+
 # Error Handling
 - Goal is RFC 9457 compliant `https://www.rfc-editor.org/rfc/rfc9457.html#name-json-schema-for-http-proble`
     - TLDR: every error response body has to have a specific format, and you can return additional data fields for dev consuming the api to use for debuggings
@@ -429,6 +436,79 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - in prod its 1 line json for easy log scrapping
     - in dev its structured and human-readable
     
+# Traces, Metrics, Logs 
+- Comprehensive overview `https://www.youtube.com/watch?v=fh3VbrPvAjg`
+- Code walkthrough example 
+    - `https://www.youtube.com/watch?v=Qyku6cR6ADY` 
+    - `https://www.youtube.com/watch?v=Ssje93u2GWM`
+- Blog post walk through `https://spring.io/blog/2024/10/28/lets-use-opentelemetry-with-spring`
+    - Brave + OpenTelemetry
+- Overview:
+    - OpenZipkin
+        - Zipkin: latency visualization tools
+        - Brave: tracer library, handles life cycle of a span (Battle hardened)
+    - OpenTelemetry
+        - Standardize how apps are instrumented 
+        - Think of interfaces to go from 
+            - App -> Exporter -> Collector -> Exporter -> Data Backend 
+        - Also tracer library? (Newer)
+        - Push based
+        - OTEL collector 
+            - DOES NOT HAVE BACKEND FOR STORAGE. 
+            - Purpose is to instrument with OTEL and send telemetry to supporting backend
+            - Or process then send to none OTEL supporting backend
+            - support prometheus by exposing and endpoint for pulling data
+    - Prometheus
+        - Time series database
+        - Does not support OTEL, need to preprocess
+        - Pull based `https://dev.to/mikkergimenez/why-is-prometheus-pull-based-36k1#:~:text=Another%20reason%20is%20that%20a,outage%2C%20or%20has%20been%20decommissioned.`
+    - Latency Visualization tools:
+        - VMware Tanzu
+        - OpenZipkin
+        - Jaeger
+        - `Grafana Tempo`
+    - Metrics Visualization tools:
+        - VMware Tanzu
+        - `Grafana`
+    - Logs
+        - Elastic Logstash Kibana
+        - `Grafana Loki`
+    - Micrometer observation api
+        - Abstraction over Traces, Metrics, and Logs module
+    - Micrometer Core
+        - counters, timers, gauges (metrics)
+    - Micrometer Tracing
+        - add traces/spans support, but no specific implementations
+    - OpenTelemetry/Brave
+        - Actual tracer implementation
+
+- Sampling rules in tracing
+    - Every request has 1 traceId and 1 or more spanId
+    - Recording every trace is not sustainable at high trafic and might kill your backend 
+    => Need to samples in production
+    - `Head-based sampling`
+        - Decision made as it arrives, regardless of outcomes
+        - flip a coin probability types
+    - `Tail-based sampling`
+        - Record everything locally, wait till outcome to see if should export
+        - Need OTEL Collector to process locally
+    - Netflix style?
+        - In prod
+            - sample small percentage to cut cost
+            - Alrays keep Errors/High latency request
+        - In dev
+            - keep all for debugging lol
+    - NOTE: even though traces are not picked, the logs are still untouched, just that we dont have traceId/spanId for those
+
+- Plan is to use
+    - Micrometer
+    - Tracing
+        - Brave for tracing + OTLP converter 
+        - Or OpenTelemetry Auto agent/instrumentation `https://opentelemetry.io/docs/zero-code/java/agent/getting-started/`
+    - Grafana everything
+    - Send metrics to Prometheus/Grafana, traces to Tempo/Jaeger, logs to Loki.
+
+        
 
 # Structure
 Consumers will never access the core/impl, only the api objetcs 

@@ -1,0 +1,35 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:0.101.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "55679:55679" # (optional) Prometheus scrape / zpages if you enable them
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:latest
+    ports: ["3200:3200"] # query API
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+    command: ["-config.file=/etc/tempo.yaml"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    volumes:
+      - ./grafana/grafana_custom.ini:/etc/grafana_custom.ini:ro
+      - ./grafana/datasources/grafana_data_sources.yaml:/etc/grafana/provisioning/datasources/grafana_data_sources.yaml
+    environment:
+      - "GF_PATHS_CONFIG=/etc/grafana_custom.ini"
+

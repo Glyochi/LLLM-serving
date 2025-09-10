@@ -77,8 +77,8 @@ public class Gemma3ChatTemplate implements ChatTemplate {
     result.append(SOT);
     result.append(convertRoleToString(Role.ASSISTANT));
 
-    log.info(String.format("[%s] Chat template applied", modelId()));
-    log.info(result.toString());
+    System.out.println(String.format("[%s] Chat template applied", modelId()));
+    System.out.println(result.toString());
     return result.toString();
   }
 

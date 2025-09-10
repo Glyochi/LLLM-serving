@@ -1,0 +1,51 @@
+# tempo.yaml — single-node, local filesystem storage, OTLP receiver, search enabled
+
+server:
+  http_listen_port: 3200         # Grafana connects here
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc: {}                 # listen on 4317 inside container
+        http: {}                 # listen on 4318 inside container
+
+ingester:
+  # roll blocks fairly quickly for local/dev so you can search soon after requests
+  max_block_bytes: 104857600     # 100 MB
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 24h         # keep traces for a day (adjust as you like)
+
+querier:
+  # default settings fine for single binary
+
+query_frontend:
+  search:
+    enabled: true                # enable Tempo’s trace search UI in Grafana
+
+storage:
+  trace:
+    backend: local               # local filesystem (good for dev)
+    local:
+      path: /var/tempo/traces    # make sure this directory is writable/mounted
+    wal:
+      path: /var/tempo/wal
+
+overrides:
+  # keep defaults simple; you can cap tenant rates here if needed
+  max_search_bytes_per_trace: 10485760  # 10 MB
+
+metrics_generator:
+  registry:
+    external_labels:
+      service: tempo
+  storage:
+    remote_write:
+      # add a Prometheus remote_write URL here if you want span metrics exported
+      # - url: http://prometheus:9090/api/v1/write
+      #   send_exemplars: true
+  processor:
+    metrics_generation_enabled: false    # flip to true if you wire Prometheus

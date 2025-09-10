@@ -1,5 +1,8 @@
 package com.glygateway.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
@@ -16,6 +19,7 @@ import com.glygateway.service.triton.api.ModelAdapterRegistry;
 
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 @RestController
@@ -29,6 +33,22 @@ public class AgentController {
   @PostMapping(value = "/fail")
   public Flux<String> fail() throws InferenceFailedException {
     throw new InferenceFailedException("REEEEEEEEEEEE");
+  }
+
+  @PostMapping(value = "/complete")
+  public Mono<Map<String, String>> complete(@Valid @RequestBody ChatRequest request)
+      throws ValidationException, InferenceFailedException {
+    var conversation = request.conversation();
+    var inferenceParams = request.inferenceParams();
+    var adapter = registry.forModelId(inferenceParams.getModelId());
+    Map<String, String> result = new HashMap(); 
+
+    result.put("input", adapter.debugApplyChatTemplate(conversation));
+    Flux<String> output_stream = adapter.stream(adapter.buildRequest(conversation, inferenceParams));
+    return output_stream.reduce((a, b) -> a + b).map(concat -> {
+      result.put("output", concat);
+      return result;
+    });
   }
 
   @PostMapping(value = "/stream-complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
