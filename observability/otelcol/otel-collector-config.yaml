@@ -1,0 +1,36 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: {} # default port 4317 
+
+processors:
+  batch: {}
+
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:9464
+  logging:
+    loglevel: debug
+
+service:
+  # Expose the collector's own metrics at :8888 so Prometheus can scrape it
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      exporters: [logging, prometheus]
+    logs:
+      receivers: [otlp]
+      exporters: [logging]
+

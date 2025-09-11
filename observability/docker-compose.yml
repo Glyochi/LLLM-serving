@@ -1,35 +1,50 @@
-# docker-compose.yml
 version: "3.9"
 
 services:
+  init:
+    image: &tempoImage grafana/tempo:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./tempo/tempo-data:/var/tempo
+
   otel-collector:
     image: otel/opentelemetry-collector:0.101.0
     command: ["--config=/etc/otelcol/config.yaml"]
     ports:
       - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "55679:55679" # (optional) Prometheus scrape / zpages if you enable them
+      - "9464:9464" # (optional) Prometheus scrape / zpages if you enable them
     volumes:
-      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+      - ./otelcol/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
     restart: unless-stopped
+    depends_on: [tempo, prometheus, grafana]
 
   tempo:
-    image: grafana/tempo:latest
-    ports: ["3200:3200"] # query API
+    image: *tempoImage 
+    ports: 
+      - "3200:3200" # query API
     volumes:
-      - ./tempo.yaml:/etc/tempo.yaml:ro
-    command: ["-config.file=/etc/tempo.yaml"]
+      - ./tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - ./tempo/tempo-data:/var/tempo
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    depends_on: [init]
 
   prometheus:
     image: prom/prometheus:latest
     ports: ["9090:9090"]
+    command: ["--config.file=/etc/prometheus/prometheus.yaml"]
+    volumes:
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
 
   grafana:
     image: grafana/grafana:latest
     ports: ["3000:3000"]
     volumes:
-      - ./grafana/grafana_custom.ini:/etc/grafana_custom.ini:ro
-      - ./grafana/datasources/grafana_data_sources.yaml:/etc/grafana/provisioning/datasources/grafana_data_sources.yaml
+      - ./grafana/grafana_custom.ini:/etc/grafana/grafana_custom.ini:ro
+      - ./grafana/datasources/grafana_data_sources.yaml:/etc/grafana/provisioning/datasources/grafana_data_sources.yaml:ro
     environment:
-      - "GF_PATHS_CONFIG=/etc/grafana_custom.ini"
+      - "GF_PATHS_CONFIG=/etc/grafana/grafana_custom.ini"
 

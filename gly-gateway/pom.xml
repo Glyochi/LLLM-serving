@@ -10,9 +10,9 @@
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.java</groupId>
-  <artifactId>gly-gateway</artifactId>
+  <artifactId>glygateway</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>gly-gateway</name>
+  <name>glygateway</name>
   <description>Demo project for Spring Boot</description>
   <url />
   <licenses>
@@ -110,6 +110,11 @@
 
     <!-- Logging -->
 
+    <!-- Micrometer --> 
+    <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-observation</artifactId>
+    </dependency>
     <!-- Tracing -->
     <dependency>
       <groupId>io.micrometer</groupId>
@@ -129,7 +134,7 @@
     </extensions>
 
     <plugins>
-       <!-- java -jar gly-gateway-*.jar : pass argurments without manual paths -->
+       <!-- java -jar glygateway-*.jar : pass argurments without manual paths -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

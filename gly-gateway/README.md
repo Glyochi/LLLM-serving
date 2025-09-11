@@ -1,5 +1,5 @@
 # Goal
-`https://www.youtube.com/watch?v=XpunFFS-n8I`
+[](https://www.youtube.com/watch?v=XpunFFS-n8I)
 
 # Install Java
 sudo apt install default-jdk
@@ -29,14 +29,14 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
 
 
 # What are beans
-- `https://www.reddit.com/r/SpringBoot/comments/y8xitr/what_beans_exactly_are/`
+- [Beans](https://www.reddit.com/r/SpringBoot/comments/y8xitr/what_beans_exactly_are/)
 - Called at startup to initialize a singleton instance, for each @Bean
 - Only inject those singletons to other @Bean function or constructors of @Service, @Component, @Controller,...
 - Setter and Field injection (need @Autowired) works
 
 # Reactor/Webflux
 ## Basic building blocks
-- Boiled down to 4 types of interface in `reactivestreams` package `https://github.com/reactive-streams/reactive-streams-jvm/tree/master/api/src/main/java/org/reactivestreams`
+- Boiled down to 4 types of interface in [`reactivestreams` package](https://github.com/reactive-streams/reactive-streams-jvm/tree/master/api/src/main/java/org/reactivestreams)
     - `Publisher`
         - subscribe (takes in `Subscriber`)
     - `Subscriber`
@@ -49,7 +49,7 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
         - cancel
     - `Processor`
         - extends `Subscriber` and `Publisher`
-- Interfaces and Classes in `reactor-core` package `https://github.com/reactor/reactor-core/tree/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core`
+- Interfaces and Classes in [`reactor-core` package](https://github.com/reactor/reactor-core/tree/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core)
     - `CoreSubscriber`
         - extends `Subscriber`
     - `CorePublisher` 
@@ -110,21 +110,21 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
             - This is where it differs among all middle nodes implementations
             - Also where the private class extending `InnerOperator` is declared and instantiated
 - [SOURCE] Codes that help getting a high level overview
-    - Flux `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/Flux.java#L6629`
+    - [Flux](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/Flux.java#L6629)
         - Looks at the subscribe function that wrap the Consumer function around LambdaSubscriber
         - Looks at subscribeWith
         - Looks at flatMap/map
-    - FluxJust `https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/FluxJust.java`
+    - [FluxJust](https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/FluxJust.java)
         - Look at subscribe
-    - InternalFluxOperator `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/InternalFluxOperator.java`
+    - [InternalFluxOperator](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/InternalFluxOperator.java)
         - Look at subscribe, its calling subscribeOrReturn
         - If subscribeOrReturn returns null, it will not do anything and exit
         - If subscribeOrReturn returns not null (`CoreSubscriber` object), it will make its source call subscribe on the `CoreSubscriber` (continue upstream subscribe call)
-    - FluxMap `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxMap.java`
+    - [FluxMap](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxMap.java)
         - Look at subscribeOrReturn, and how its return MapSubscribe
         - Look at MapSubscribe
-    - LambdaSubscriber `https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/LambdaSubscriber.java`
-    - ScalarSubscription `https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/Operators.java#L2513`
+    - [LambdaSubscriber](https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/LambdaSubscriber.java)
+    - [ScalarSubscription](https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/Operators.java#L2513)
 
 ### Implementations of building blocks, multi threaded cases
 - There are two ways of doing threading 
@@ -135,23 +135,22 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
         - which returns `PublishOnSubscriber`
         - This only brings downstream to another thread
 - [SOURCE] Codes that help getting a high level overview
-    - Schedulers `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/scheduler/Schedulers.java#L277`
+    - [Schedulers](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/scheduler/Schedulers.java#L277)
         - Looks at boundedElastic, elastic, parallel. It caches these object => Singleton
-    - BoundedElasticScheduler `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/scheduler/BoundedElasticScheduler.java`
+    - [BoundedElasticScheduler](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/scheduler/BoundedElasticScheduler.java)
         - Implements Scheduler
         - this.state is of type SchedulerState<BoundedServices>
         - Looks at createWorker and pick 
             - createWoker triggers state.currentResources.pick()
-            - Or BoundedServices.pick() `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/scheduler/BoundedElasticScheduler.java#L613`
+            - Or [BoundedServices.pick()](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/scheduler/BoundedElasticScheduler.java#L613)
             => On a high level, see what thread/worker is avaible and reuse them if possible, if not make new one (depending on Scheduler implementations)
         => All we care about is that they can use `Worker` to call `Worker.schedule` on a `Runnable` aka `SubscribeOnSubscriber` or `PublishOnSubscriber`
-    - Flux `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/Flux.java#L6629`
+    - [Flux](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/Flux.java#L6629)
         - Looks at subscribeOn, which returns `FluxSubscribeOn`
         - Looks at publishOn, which returns `FluxPublishOn`
-    - FluxSubscribeOn `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxSubscribeOn.java#L53`
+    - [FluxSubscribeOn](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxSubscribeOn.java#L53)
         - Extends `InternalFluxOperator`, which extends `FluxOperator`, which extends `Flux` -> `Publisher` still  
-        - Looks at `SubscribeOnSubscriber` class
-            - `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxSubscribeOn.java#L80`
+        - Looks at [`SubscribeOnSubscriber` class](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxSubscribeOn.java#L80)
             - which implements `InnerOperator` and `Runnable`
             - Looks at run, request, onSubscribe function
         - Looks at subscribeOrReturn 
@@ -159,10 +158,9 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
             - it also start the onSubscribe chain call downstream, on the same initial thread
             - it also starts the subscribe chain call upstream (via `SubscribeOnSubscriber` run function), on the Worker thread
             - it returns null to disable `InternalFluxOperator` upstream subscribe call
-    - FluxPublishOn `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxPublishOn.java`
+    - [FluxPublishOn](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxPublishOn.java)
         - Extends `InternalFluxOperator`, which extends `FluxOperator`, which extends `Flux` -> `Publisher` still  
-        - Looks at PublishOnSubscriber class
-            - `https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxPublishOn.java#L110`
+        - Looks at [PublishOnSubscriber class](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxPublishOn.java#L110)
             - which implements `InnerOperator` and `Runnable`
             - Looks at run, request, onSubscribe function
         - Looks at subscribeOrReturn
@@ -323,7 +321,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 
 # General learning
 - Video form
-    - `https://www.youtube.com/watch?v=hfupNIxzNP4`
+    - [Vid 1](https://www.youtube.com/watch?v=hfupNIxzNP4)
         - Assembly/Subscription time 
             - Take this example `Publisher -> op_1 -> op_2 -> subscribe(lambda_1)`
             - At assembly time 
@@ -343,9 +341,9 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
                 - `publishOn` will affect everything downstream
 
 - Blog post form 
-    - `https://projectreactor.io/learn` 
-    - `https://spring.io/blog/2019/03/06/flight-of-the-flux-1-assembly-vs-subscription`
-    - `https://www.baeldung.com/java-reactor-map-flatmap`
+    - [](https://projectreactor.io/learn)
+    - [](https://spring.io/blog/2019/03/06/flight-of-the-flux-1-assembly-vs-subscription)
+    - [](https://www.baeldung.com/java-reactor-map-flatmap)
 
 - Block vs non blocking
     - Blocking operations
@@ -357,12 +355,12 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
         - Http request by WebClient 
 
 - Concurrency and event loop
-    - Python `https://www.youtube.com/watch?v=MCs5OvhV9S4`
+    - [Python](https://www.youtube.com/watch?v=MCs5OvhV9S4)
         - COOPERATIVE FAKE THREADS (on 1 real OS thread)
         - 1 thread runs everything per core doable. Need Redis to sync. 
         - gevent greenlets (virtual thread but in userspace, not OS)
         - Need to monkeypatch OS blocking calls, making OS blocking calls DO yield
-    - Reactor `https://www.baeldung.com/spring-webflux-concurrency`
+    - [Reactor](https://www.baeldung.com/spring-webflux-concurrency)
         - PREMPTIVE THREADS (OS)
         - 1 thread per cpu core => for maximum utilization. Sync state using DB as well.
         - Using just `Reactor`, there are no `virtual thread`, the `event loop` and the `tasks` are executed on the same thread unless specified otherwise (subscribeOn, publishOn, time op,...).
@@ -394,13 +392,14 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - Automatically download binary online by configuring in pom.xm, `pluginArtifact`
     - Responsible for generating service stubs (client and server classes/interfaces/functions)
 - `mvn -U clean compile` should generate the code for you in `target` folder 
-- GRPC code explained `https://www.youtube.com/watch?v=zCXN4wj0uPo`
+- [GRPC code explained](https://www.youtube.com/watch?v=zCXN4wj0uPo)
 - GRPC interface refer to `inference-server` README.md + `postman collection`
 
 
 # Triton GRPC good to know
-- More on `raw_input_contents/raw_output_contents` or `Tensor data` here `https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/protocol/extension_binary_data.html?utm_source=chatgpt.com`
+- More on `raw_input_contents/raw_output_contents` or `Tensor data` [here](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/protocol/extension_binary_data.html?utm_source=chatgpt.com)
 - `InferInputTensor` includes
+
     - [ALWAYS] metadata (name, shape [B, C] where `B` for batch and `C` for element per request, datatype)
     - [MAYBE, PREFERABLY NOT] data
 - `InferOutputTensor` includes
@@ -413,7 +412,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 
 
 # Nvim - Lsp - jdtls
-- Add `target/generated-sources/protobuf/java` as one of the source directories following this `https://www.baeldung.com/maven-add-src-directories`
+- Add `target/generated-sources/protobuf/java` as one of the source directories following [this](https://www.baeldung.com/maven-add-src-directories)
 - The application was serving fine? I guess it was only for LSP
 
 
@@ -422,7 +421,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 
 
 # Error Handling
-- Goal is RFC 9457 compliant `https://www.rfc-editor.org/rfc/rfc9457.html#name-json-schema-for-http-proble`
+- Goal is [RFC 9457 compliant](https://www.rfc-editor.org/rfc/rfc9457.html#name-json-schema-for-http-proble)
     - TLDR: every error response body has to have a specific format, and you can return additional data fields for dev consuming the api to use for debuggings
     - Need to set up a documentation server for field `type`. Perhaps `SWAGGER`? 
 - Using `jakarta` for contraint annotations + validation
@@ -437,11 +436,11 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - in dev its structured and human-readable
     
 # Traces, Metrics, Logs 
-- Comprehensive overview `https://www.youtube.com/watch?v=fh3VbrPvAjg`
+- [Comprehensive overview](https://www.youtube.com/watch?v=fh3VbrPvAjg)
 - Code walkthrough example 
-    - `https://www.youtube.com/watch?v=Qyku6cR6ADY` 
-    - `https://www.youtube.com/watch?v=Ssje93u2GWM`
-- Blog post walk through `https://spring.io/blog/2024/10/28/lets-use-opentelemetry-with-spring`
+    - [](https://www.youtube.com/watch?v=Qyku6cR6ADY)
+    - [](https://www.youtube.com/watch?v=Ssje93u2GWM)
+- [Blog post walk through](https://spring.io/blog/2024/10/28/lets-use-opentelemetry-with-spring)
     - Brave + OpenTelemetry
 - Overview:
     - OpenZipkin
@@ -461,7 +460,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - Prometheus
         - Time series database
         - Does not support OTEL, need to preprocess
-        - Pull based `https://dev.to/mikkergimenez/why-is-prometheus-pull-based-36k1#:~:text=Another%20reason%20is%20that%20a,outage%2C%20or%20has%20been%20decommissioned.`
+        - [Pull based](https://dev.to/mikkergimenez/why-is-prometheus-pull-based-36k1#:~:text=Another%20reason%20is%20that%20a,outage%2C%20or%20has%20been%20decommissioned.)
     - Latency Visualization tools:
         - VMware Tanzu
         - OpenZipkin
@@ -501,10 +500,11 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - NOTE: even though traces are not picked, the logs are still untouched, just that we dont have traceId/spanId for those
 
 - Plan is to use
+    - [Good guide](https://github.com/marcingrzejszczak/observability-boot-blog-post)
     - Micrometer
     - Tracing
         - Brave for tracing + OTLP converter 
-        - Or OpenTelemetry Auto agent/instrumentation `https://opentelemetry.io/docs/zero-code/java/agent/getting-started/`
+        - Or OpenTelemetry Auto agent/instrumentation [here](https://opentelemetry.io/docs/zero-code/java/agent/getting-started/)
     - Grafana everything
     - Send metrics to Prometheus/Grafana, traces to Tempo/Jaeger, logs to Loki.
 
@@ -512,6 +512,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 
 # Structure
 Consumers will never access the core/impl, only the api objetcs 
+```
 *any_folder/
 ├── api/ (Interfaces/Contracts for consumers)
 │   ├── obj_interface (What the obj do)
@@ -521,8 +522,9 @@ Consumers will never access the core/impl, only the api objetcs
 │   └── objRegistry_base (Registry implementation, usually sufficient at this point because don't have variant of objRegistry. Tho it is possible)
 └── impl/ (Case specific implementations)
     └── obj_variant (variant implementation)
+```
 
-
+```
 gly-gateway/
 ├── pom.xml
 ├── src/
@@ -562,3 +564,4 @@ gly-gateway/
 │       └── ... (test related code and resources)
 └── target/
     └── ... (build output)
+```

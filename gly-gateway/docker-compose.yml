@@ -1,0 +1,24 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  glygateway:
+    image: glygateway:latest
+    network_mode: host 
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./target/glygateway-0.0.1-SNAPSHOT.jar:/app.jar
+    entrypoint: ["java", "-jar", "app.jar"]
+    environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:agent.jar"
+      OTEL_SERVICE_NAME: "glygateway"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://localhost:4317"
+      OTEL_JAVAAGENT_DEBUG: true
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+    restart: unless-stopped
+
+
