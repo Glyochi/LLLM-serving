@@ -1,5 +1,5 @@
 # Docker
-- Service A can access service B without B exposing port to host machine, just by service_name:port
+- Service A can access service B without B exposing port to host machine, just by service_name:port (if under same network, thats default if no network defined)
 - Exposed posts
     - Gateway: 8090
     - Triton metrics: 8002

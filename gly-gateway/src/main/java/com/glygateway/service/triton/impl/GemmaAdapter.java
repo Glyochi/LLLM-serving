@@ -19,20 +19,25 @@ import com.glygateway.service.triton.core.TritonClientFacade;
 import com.google.protobuf.ByteString;
 
 import inference.GrpcService.ModelInferRequest;
+import io.micrometer.observation.ObservationRegistry;
+import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Component
 public class GemmaAdapter extends AbstractModelAdapter {
   private final ChatTemplate chatTemplate;
   private final TritonClientFacade triton;
   private final GemmaConfig config;
+  private final ObservationRegistry observationRegistry;
 
   public GemmaAdapter(ChatTemplateRegistry chatTemplateRegistry,
-      TritonClientFacade triton, GemmaConfig config) throws ValidationException {
+      TritonClientFacade triton, GemmaConfig config, ObservationRegistry observationRegistry) throws ValidationException {
     super();
     this.chatTemplate = chatTemplateRegistry.forModelId(modelId());
     this.triton = triton;
     this.config = config;
+	this.observationRegistry = observationRegistry;
   }
 
   @Override
@@ -43,6 +48,11 @@ public class GemmaAdapter extends AbstractModelAdapter {
   @Override
   public String debugApplyChatTemplate(Conversation agentChatRequest) throws ValidationException {
     return chatTemplate.applyTemplate(new Conversation(agentChatRequest.getContents()));
+  }
+
+  @Override
+  public Mono<ModelInferRequest> buildRequest2(Conversation agentChatRequest, InferenceParams inferenceParams) throws ValidationException {
+    return Mono.fromCallable(() -> buildRequest(agentChatRequest, inferenceParams)).name("apply-template").tap(Micrometer.observation(observationRegistry));
   }
 
   @Override

@@ -7,15 +7,23 @@ import inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceFutureStub;
 
 import io.grpc.ManagedChannel;
 
+
 @Configuration
 public class TritonGrpcConfig {
+
+
+  private final TritonConfig cfg;
+
+  public TritonGrpcConfig(TritonConfig cfg){
+    this.cfg = cfg;
+  }
 
   @Bean(destroyMethod = "shutdownNow")
   public ManagedChannel tritonChannel() {
     return io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-        .forAddress("localhost", 8001)
+        .forAddress(cfg.host(), cfg.grpcPort())
         .usePlaintext() // or TLS
-        .keepAliveTime(30, java.util.concurrent.TimeUnit.SECONDS)
+        .keepAliveTime(cfg.timeoutMs(), java.util.concurrent.TimeUnit.MILLISECONDS)
         .keepAliveWithoutCalls(true)
         .maxInboundMessageSize(64 * 1024 * 1024)
         .build();

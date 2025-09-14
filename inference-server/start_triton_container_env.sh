@@ -9,8 +9,16 @@ model_repo="$base_path/model-repository"
 
 home_path="/opt/tritonserver/projects"
 
-docker run --rm -it --net host --shm-size=4g \
+external_network="observability"
+container_name="triton"
+
+docker run --rm -it --shm-size=4g \
     --ulimit memlock=-1 --ulimit stack=67108864 --gpus all \
+    --network $external_network \
+    --name $container_name \
+    -p 8000:8000 \ # Keeping the port for debugging scripts
+    -p 8001:8001 \
+    -p 8002:8002 \
     -v $tensorrtllm_backend_path:$home_path/tensorrtllm_backend \
     -v $engine_path:$home_path/engines \
     -v $checkpoints_path:$home_path/checkpoints \

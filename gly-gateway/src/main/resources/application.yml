@@ -1,13 +1,51 @@
-glygateway:
-  models:
-    gemma:
-      max-tokens: 4096 
-      temperature: 0.5
-      top-p: 0.95
-      top-k: 0
-    gemma3:
-      max-tokens: 4096 
-      temperature: 0.5
-      top-p: 0.95
-      top-k: 0
+spring:
+  application:
+    name: gly-gateway
+  main:
+    banner-mode: "off"
+
+server:
+  port: 8090
+
+triton:
+  host: triton
+  http-port: 8000
+  grpc-port: 8001
+  timeout-ms: 30000
+
+models:
+  gemma:
+    max-tokens: 4096 
+    temperature: 0.5
+    top-p: 0.95
+    top-k: 0
+  gemma3:
+    max-tokens: 4096 
+    temperature: 0.5
+    top-p: 0.95
+    top-k: 0
+
+# Auto loaded in by otlp auto config
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://otel-collector:4318/v1/traces
+    metrics:
+      url: http://otel-collector:4318/v1/metrics
+      batchSize: 15000
+      aggregationTemporality: "cumulative"
+      headers:
+        header1: value1
+      step: 30s
+      resourceAttributes:
+        key1: value1
+
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
 

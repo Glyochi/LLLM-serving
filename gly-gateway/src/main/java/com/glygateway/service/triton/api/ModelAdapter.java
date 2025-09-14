@@ -1,6 +1,7 @@
 package com.glygateway.service.triton.api;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import com.glygateway.model.triton.Conversation;
 import com.glygateway.model.triton.InferenceParams;
@@ -15,6 +16,7 @@ public interface ModelAdapter {
   // Build request to backend from a normalized conversation
   String debugApplyChatTemplate(Conversation agentChatRequest) throws ValidationException;
   ModelInferRequest buildRequest(Conversation agentChatRequest, InferenceParams inferenceParams) throws ValidationException;
+  Mono<ModelInferRequest> buildRequest2(Conversation agentChatRequest, InferenceParams inferenceParams) throws ValidationException;
 
   // Stream tokens from backend
   Flux<String> stream(ModelInferRequest request);

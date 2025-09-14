@@ -1,5 +1,6 @@
 # Goal
 [](https://www.youtube.com/watch?v=XpunFFS-n8I)
+[Future refactor if needed](https://github.com/a-mountain/realworld-spring-webflux/tree/master)
 
 # Install Java
 sudo apt install default-jdk
@@ -415,6 +416,8 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 - Add `target/generated-sources/protobuf/java` as one of the source directories following [this](https://www.baeldung.com/maven-add-src-directories)
 - The application was serving fine? I guess it was only for LSP
 
+# Application.yml
+- Automatically loaded in via auto configuration of certain module. Else has to be loaded in manually (GemmaConfig)
 
 # Model config
 - Loaded from application.yml
@@ -499,14 +502,41 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
             - keep all for debugging lol
     - NOTE: even though traces are not picked, the logs are still untouched, just that we dont have traceId/spanId for those
 
+- It's a bit confusing but there are [multiple ways](https://github.com/spring-projects/spring-boot/issues/41227) of doing tracings/metrics
+    - OpenTelemetry supported ways (Java Agent which inject bytes code wowow and OpenTelemetry Spring Boot Starter)
+        - Java Agent way is to download the agent binary, execute it at runtime with the spring binary. That should be it
+    - Spring supported way, which is micrometer with OTel tracing implementation + OTLP exporter
+    - Let's just go with the harder way just to understand whats happening underthe hood => Spring supported way
+
+# [Micrometer Observation Api](https://docs.micrometer.io/micrometer/reference/observation/introduction.html)
 - Plan is to use
-    - [Good guide](https://github.com/marcingrzejszczak/observability-boot-blog-post)
+    - [Good example](https://github.com/marcingrzejszczak/observability-boot-blog-post)
+    - [Official implementation documentation + example](https://docs.spring.io/spring-boot/reference/actuator/index.html)
     - Micrometer
-    - Tracing
-        - Brave for tracing + OTLP converter 
-        - Or OpenTelemetry Auto agent/instrumentation [here](https://opentelemetry.io/docs/zero-code/java/agent/getting-started/)
+    - OTel tracing `micrometer-tracing-bridge-otel` + OTLP converter (`opentelemetry-exporter-otlp` for traces and `micrometer-registry-otlp` and metrics) 
     - Grafana everything
     - Send metrics to Prometheus/Grafana, traces to Tempo/Jaeger, logs to Loki.
+- Setup
+    - application.yml
+        - logging pattern
+        - management for tracing sampling (default to 0.1 or 10%) and endpoint for pushing data (otlp collector)
+    - pom.xml
+        - micrometer-tracing-bridge-otel for otlp tracing implementation
+        - opentelemetry-exporter-otlp for convert micrometer to otlp format
+- Notes
+    - For inbound and outbound requests, micrometers when integrated with OTEL automatically handles the creation and propagation of traceId and spanId 
+- CURRENT PROGRESS
+    - Got micrometer with Otel tracing working, and it automatically creates traces/spans for inbound/outbound requests
+    - However, could not add custom spans inside those automatic traces. Ended up creating a separted traces => Bad
+    - Found out that was because Reactor Core needs `reactor-core-micrometer` module as well as `reactor-core` module (why is it not imported initially, how is reactive event loop working wthelly)
+    - [DOCS](https://projectreactor.io/docs/core/release/reference/metrics.html)
+    - Now we can manually add metrics/tracings => GUD
+- NEXT TASK
+    - Figure out version for `reactor-core-micrometer` and `reactor-core`.
+    - Clean up pom.xml + code
+    - Start adding custom spans and tags and shessh
+
+
 
         
 

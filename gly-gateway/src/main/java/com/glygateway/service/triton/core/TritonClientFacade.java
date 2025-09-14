@@ -10,6 +10,8 @@ import inference.GrpcService.ModelInferRequest;
 import inference.GrpcService.ModelInferResponse;
 import inference.GrpcService.ModelStreamInferResponse;
 import io.grpc.stub.StreamObserver;
+import io.micrometer.observation.ObservationRegistry;
+import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
 
 @Component
@@ -17,10 +19,12 @@ public class TritonClientFacade {
 
   private final GRPCInferenceServiceStub asyncStub;
   private final GRPCInferenceServiceFutureStub futureStub;
+  private final ObservationRegistry observationRegistry;
 
-  public TritonClientFacade(GRPCInferenceServiceStub asyncStub, GRPCInferenceServiceFutureStub futureStub) {
+  public TritonClientFacade(GRPCInferenceServiceStub asyncStub, GRPCInferenceServiceFutureStub futureStub, ObservationRegistry observationRegistry) {
     this.asyncStub = asyncStub;
     this.futureStub = futureStub;
+	this.observationRegistry = observationRegistry;
   }
 
   public Flux<ModelInferResponse> stream(ModelInferRequest inferRequest) {
@@ -67,7 +71,7 @@ public class TritonClientFacade {
 
     });
 
-    return completion_stream;
+    return completion_stream.name("stream-tokens").tap(Micrometer.observation(observationRegistry));
   }
 
 }

@@ -3,6 +3,9 @@ package com.glygateway.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import reactor.core.observability.micrometer.Micrometer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
@@ -20,6 +23,7 @@ import com.glygateway.service.triton.api.ModelAdapterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.annotation.NewSpan;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,20 +38,21 @@ public class AgentController {
   private ObservationRegistry observationRegistry;
 
   @Autowired
-  ModelAdapterRegistry registry;
+  private ModelAdapterRegistry modelRegistry;
 
-  @PostMapping(value = "/test")
-  public Mono<String> test() {
-    Observation obs = Observation.start("do.sleep.method.timed", this.observationRegistry)
-        .contextualName("do-sleep-method-span")
-        .lowCardinalityKeyValue("low", "low")
-        .highCardinalityKeyValue("high", "high");
-    return Mono.just("TESTING").doOnError(obs::error).doFinally(__ -> obs.stop());
+  private static final Logger logger = LoggerFactory.getLogger(AgentController.class);
+
+  @PostMapping(value = "/test/manual")
+  public Mono<String> test_manual() {
+    return Mono.defer(() -> {
+      logger.info("TESTINGGGGGGGGGGGGGGGGGGGGGG");
+      logger.info("REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+      return Mono.just("Testing");
+    }).name("/test/manual").tap(Micrometer.observation(observationRegistry));
   }
 
-  @Observed(name = "agent.fail")
   @PostMapping(value = "/fail")
-  public Flux<String> fail() throws InferenceFailedException {
+  public String fail() throws InferenceFailedException {
     throw new InferenceFailedException("REEEEEEEEEEEE");
   }
 
@@ -55,39 +60,28 @@ public class AgentController {
   public Mono<Map<String, String>> complete(@Valid @RequestBody ChatRequest request)
       throws ValidationException, InferenceFailedException {
 
-    return Observation.createNotStarted("agent.complete.timed", observationRegistry)
-        .contextualName("agent-complete-span")
-        .lowCardinalityKeyValue("low", "low")
-        .highCardinalityKeyValue("high", "high")
-        .observe(() -> {
-          Map<String, String> result = new HashMap();
-          try {
-            var conversation = request.conversation();
-            var inferenceParams = request.inferenceParams();
-            var adapter = registry.forModelId(inferenceParams.getModelId());
+    Map<String, String> result = new HashMap();
+    var conversation = request.conversation();
+    var inferenceParams = request.inferenceParams();
+    var adapter = modelRegistry.forModelId(inferenceParams.getModelId());
 
-            result.put("input", adapter.debugApplyChatTemplate(conversation));
-            Flux<String> output_stream = adapter.stream(adapter.buildRequest(conversation, inferenceParams));
-            return output_stream.reduce((a, b) -> a + b).map(concat -> {
-              result.put("output", concat);
-              return result;
-            });
-          } catch (Exception e) {
-            return Mono.just(result);
-          }
-
-        });
+    result.put("input", adapter.debugApplyChatTemplate(conversation));
+    Flux<String> output_stream = adapter.stream(adapter.buildRequest(conversation, inferenceParams));
+    return output_stream.reduce((a, b) -> a + b).map(concat -> {
+      result.put("output", concat);
+      return result;
+    }).name("/complete").tap(Micrometer.observation(observationRegistry));
 
   }
 
-  @Observed(name = "agent.stream-complete")
   @PostMapping(value = "/stream-complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public Flux<String> streamComplete(@Valid @RequestBody ChatRequest request)
       throws ValidationException, InferenceFailedException {
     var conversation = request.conversation();
     var inferenceParams = request.inferenceParams();
-    var adapter = registry.forModelId(inferenceParams.getModelId());
-    return adapter.stream(adapter.buildRequest(conversation, inferenceParams));
+    var adapter = modelRegistry.forModelId(inferenceParams.getModelId());
+
+    return adapter.buildRequest2(conversation, inferenceParams).flatMapMany(adapter::stream);
   }
 
 }
