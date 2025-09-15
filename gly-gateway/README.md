@@ -1,16 +1,19 @@
 # Goal
-[](https://www.youtube.com/watch?v=XpunFFS-n8I)
+[Not finished watching yet](https://www.youtube.com/watch?v=XpunFFS-n8I)
 [Future refactor if needed](https://github.com/a-mountain/realworld-spring-webflux/tree/master)
 
 # Install Java
+```
 sudo apt install default-jdk
 sudo apt install openjdk-21-jdk
 
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 export PATH=$PATH:$JAVA_HOME/bin
+```
 
 
 # Install maven
+```
 wget https://dlcdn.apache.org/maven/maven-3/3.8.9/binaries/apache-maven-3.8.9-bin.tar.gz 
 tar -xvf ...
 sudo mv apache-maven-3.8.9/ /opt/maven
@@ -18,15 +21,26 @@ sudo mv apache-maven-3.8.9/ /opt/maven
 export M2_HOME=/opt/maven
 export MAVEN_HOME=/opt/maven
 export PATH=${M2_HOME}/bin:${PATH}
+```
+
+# See dependencies tree
+```
+mvn dependency:tree -Dverbos
+ls ~/.m2/repository
+```
 
 
 # How to run application
+```
 mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
 ./mvnw spring-boot:run
+```
 
 
 # How to run test
+```
 ./mvnw test
+```
 
 
 # What are beans
@@ -110,6 +124,9 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
         - subscribeOrReturn
             - This is where it differs among all middle nodes implementations
             - Also where the private class extending `InnerOperator` is declared and instantiated
+    - Micrometer/Observabitlity related stuffs
+        - `FluxTap` in additional in propagating the calls upward and downward, it also signal the `signalListener` to do stuff
+        - Otherwise similar to `middel nodes`
 - [SOURCE] Codes that help getting a high level overview
     - [Flux](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/Flux.java#L6629)
         - Looks at the subscribe function that wrap the Consumer function around LambdaSubscriber
@@ -126,6 +143,16 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
         - Look at MapSubscribe
     - [LambdaSubscriber](https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/LambdaSubscriber.java)
     - [ScalarSubscription](https://github.com/reactor/reactor-core/blob/main/reactor-core/src/main/java/reactor/core/publisher/Operators.java#L2513)
+    - [FluxTap](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxTap.java#L46)
+        - Look at subscribe
+            - Create a `SignalListener` from `SignalListenerFactory`
+            - Trigger `doFirst` call for the `SignalListener`
+            - Then returns a `TapSubscriber` like normal
+    - [TapSubscriber](https://github.com/reactor/reactor-core/blob/2accddaef1fde04f3431b079a143da791810389c/reactor-core/src/main/java/reactor/core/publisher/FluxTap.java#L102)
+        - Just another `InnerOperator` but it also signal to the `signalListener` BEFORE passing the call to downstream/upstream
+    - `SignalListener` example [MicrometerObservationListener](https://github.com/reactor/reactor-core/blob/main/reactor-core-micrometer/src/main/java/reactor/core/observability/micrometer/MicrometerObservationListener.java#L47)
+        - Looks at `doFirst` and `onComplete`
+        - [NOTES] Because the when `doFirst` is called, it starts the micrometer time => The last `tap` will contains all the earlier `tap`
 
 ### Implementations of building blocks, multi threaded cases
 - There are two ways of doing threading 
@@ -342,9 +369,9 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
                 - `publishOn` will affect everything downstream
 
 - Blog post form 
-    - [](https://projectreactor.io/learn)
-    - [](https://spring.io/blog/2019/03/06/flight-of-the-flux-1-assembly-vs-subscription)
-    - [](https://www.baeldung.com/java-reactor-map-flatmap)
+    - [blog 1](https://projectreactor.io/learn)
+    - [blog 2](https://spring.io/blog/2019/03/06/flight-of-the-flux-1-assembly-vs-subscription)
+    - [blog 3](https://www.baeldung.com/java-reactor-map-flatmap)
 
 - Block vs non blocking
     - Blocking operations
@@ -441,8 +468,8 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 # Traces, Metrics, Logs 
 - [Comprehensive overview](https://www.youtube.com/watch?v=fh3VbrPvAjg)
 - Code walkthrough example 
-    - [](https://www.youtube.com/watch?v=Qyku6cR6ADY)
-    - [](https://www.youtube.com/watch?v=Ssje93u2GWM)
+    - [video 1](https://www.youtube.com/watch?v=Qyku6cR6ADY)
+    - [video 2](https://www.youtube.com/watch?v=Ssje93u2GWM)
 - [Blog post walk through](https://spring.io/blog/2024/10/28/lets-use-opentelemetry-with-spring)
     - Brave + OpenTelemetry
 - Overview:
@@ -510,8 +537,6 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 
 # [Micrometer Observation Api](https://docs.micrometer.io/micrometer/reference/observation/introduction.html)
 - Plan is to use
-    - [Good example](https://github.com/marcingrzejszczak/observability-boot-blog-post)
-    - [Official implementation documentation + example](https://docs.spring.io/spring-boot/reference/actuator/index.html)
     - Micrometer
     - OTel tracing `micrometer-tracing-bridge-otel` + OTLP converter (`opentelemetry-exporter-otlp` for traces and `micrometer-registry-otlp` and metrics) 
     - Grafana everything
@@ -521,6 +546,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
         - logging pattern
         - management for tracing sampling (default to 0.1 or 10%) and endpoint for pushing data (otlp collector)
     - pom.xml
+        - reactor-core-micrometer (reactor module for interfacing with micrometer)
         - micrometer-tracing-bridge-otel for otlp tracing implementation
         - opentelemetry-exporter-otlp for convert micrometer to otlp format
 - Notes

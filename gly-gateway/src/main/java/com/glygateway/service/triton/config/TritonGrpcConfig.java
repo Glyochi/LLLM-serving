@@ -4,18 +4,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceStub;
 import inference.GRPCInferenceServiceGrpc.GRPCInferenceServiceFutureStub;
-
+import io.grpc.Channel;
+import io.grpc.ClientInterceptor;
+import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
-
 
 @Configuration
 public class TritonGrpcConfig {
 
-
   private final TritonConfig cfg;
+  private final ClientInterceptor grpcTracingClientInterceptor;
 
-  public TritonGrpcConfig(TritonConfig cfg){
+  public TritonGrpcConfig(TritonConfig cfg, ClientInterceptor tracingClientInterceptor) {
     this.cfg = cfg;
+    this.grpcTracingClientInterceptor = tracingClientInterceptor;
   }
 
   @Bean(destroyMethod = "shutdownNow")
@@ -29,17 +31,21 @@ public class TritonGrpcConfig {
         .build();
   }
 
-  // These two stubs will share the same channel because BEANNNN + IoC  
+  @Bean
+  public Channel tracedChannel(ManagedChannel channel) {
+    return ClientInterceptors.intercept(channel, grpcTracingClientInterceptor);
+  }
+
+  // These two stubs will share the same channel because BEANNNN + IoC
   @Bean
   public GRPCInferenceServiceStub tritonAsyncStub(
-      ManagedChannel channel) {
-    return inference.GRPCInferenceServiceGrpc.newStub(channel);
+      Channel tracedChannel) {
+    return inference.GRPCInferenceServiceGrpc.newStub(tracedChannel);
   }
 
   @Bean
   public GRPCInferenceServiceFutureStub tritonFutureStub(
-      ManagedChannel channel) {
-    return inference.GRPCInferenceServiceGrpc.newFutureStub(channel);
+      Channel tracedChannel) {
+    return inference.GRPCInferenceServiceGrpc.newFutureStub(tracedChannel);
   }
 }
-

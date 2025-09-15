@@ -17,9 +17,6 @@ services:
     image: otel/opentelemetry-collector:0.101.0
     networks: [observability]
     command: ["--config=/etc/otelcol/config.yaml"]
-    ports:
-      - "4317:4317"   # OTLP gRPC
-      - "9464:9464" # (optional) Prometheus scrape / zpages if you enable them
     volumes:
       - ./otelcol/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
     restart: unless-stopped
@@ -28,8 +25,6 @@ services:
   tempo:
     image: *tempoImage 
     networks: [observability]
-    ports: 
-      - "3200:3200" # query API
     volumes:
       - ./tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
       - ./tempo/tempo-data:/var/tempo
@@ -39,7 +34,6 @@ services:
   prometheus:
     image: prom/prometheus:latest
     networks: [observability]
-    ports: ["9090:9090"]
     command: ["--config.file=/etc/prometheus/prometheus.yaml"]
     volumes:
       - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
@@ -47,7 +41,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     networks: [observability]
-    ports: ["3000:3000"]
+    ports: 
+      - "3000:3000"
     volumes:
       - ./grafana/grafana_custom.ini:/etc/grafana/grafana_custom.ini:ro
       - ./grafana/datasources/grafana_data_sources.yaml:/etc/grafana/provisioning/datasources/grafana_data_sources.yaml:ro

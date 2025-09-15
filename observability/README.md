@@ -4,8 +4,9 @@
     - Gateway: 8090
     - Triton metrics: 8002
     - OTEL collector: 
-        - 4317 (import data grpc)
-        - 9464 (its metrics)
+        - 4317 (receive data port grpc)
+        - 9464 (received/collected data, ready to serve prometheus)
+        - 8888 (otel collecter's own services, for prometheus)
     - Tempo:
         - 3200 (export for UI)
     - Prometheus

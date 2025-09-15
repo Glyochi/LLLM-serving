@@ -84,7 +84,7 @@ Need to configure `config.pbtxt` file in the `model_repository`
           - preprocessing/
               - 1/
                   - model.py `# Tokenizer (HF AutoTokenizer)`
-              config.pbtxt
+              - config.pbtxt
           - tensorrt_llm/
               - 1/ `# (empty here; engines live outside under _assets)`
               - config.pbtxt
@@ -92,7 +92,6 @@ Need to configure `config.pbtxt` file in the `model_repository`
               - 1/
                   - model.py `# Detokenizer`
               - config.pbtxt
-
           - _assets/
               - gemma-2b-it/
                   - tokenizer/ `# HF tokenizer files. Get these from hf checkpoint`

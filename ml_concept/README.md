@@ -26,6 +26,7 @@
             => We could start A, B, C at the same time. And when at the stage where C needs to know A and B, we are already there and ready
     - Extra step after DECODER, uses `Encoder-Decoder attention`
 
+```
 [Input Token] -> `Fully connected layer` or `Word embedding network` -> Embedding input
 [ENCODER]: Prompt input embedding -> RoPE -> Position encoded value [PV] -> [Attention Head] Self attention layer [K, V, Q] -> Sum([Softmax(Q . K) to get prob] * V) -> Self attention value [SV] -> Residual connection value [RCV]
                                         │                                                                                                                      │
@@ -42,11 +43,13 @@ RCV (Decoder) for each token, has all information of relevant generated tokens
      └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 [Final RCV] -> `Fully connected layer` or `Word embedding network` -> Logits -> Softmax -> Token probabilities -> Token [Multiple decoding strategy]
+```
 
 
 # Decoder only Transformer
 - Use `Masked Self-Attention` all the time, including both `input` and `output`, for both training and inference
 
+```
 [Input Token] -> `Fully connected layer` or `Word embedding network` -> Embedding input
 [DECODER]: Last input embedding (regardless of prompt/generated token) -> RoPE -> Position encoded value [PV] -> [Attention Head] Self attention layer [K, V, Q] -> Sum([Softmax(Q . K) to get prob] * V) -> Self attention value [SV] -> Residual connection value [RCV]
                                                                                             │                                                                                                                      │
@@ -54,6 +57,7 @@ RCV (Decoder) for each token, has all information of relevant generated tokens
 
 RCV (Encoder) for each token, has all information of relevant prompt tokens + generated 
 [RCV (Decoder)] -> `Fully connected layer` or `Word embedding network` -> Logits -> Softmax -> Token probabilities -> Token [Multiple decoding strategy]
+```
 
 
 # Mixture of Expert (MoE)
