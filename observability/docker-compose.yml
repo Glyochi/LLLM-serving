@@ -3,16 +3,8 @@ networks:
     external: true
 
 services:
-  init:
-    image: &tempoImage grafana/tempo:latest
-    user: root
-    entrypoint:
-      - "chown"
-      - "10001:10001"
-      - "/var/tempo"
-    volumes:
-      - ./tempo/tempo-data:/var/tempo
 
+  # Otel
   otel-collector:
     image: otel/opentelemetry-collector:0.101.0
     networks: [observability]
@@ -22,6 +14,16 @@ services:
     restart: unless-stopped
     depends_on: [tempo, prometheus, grafana]
 
+  # Tempo
+  tempo-init:
+    image: &tempoImage grafana/tempo:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./tempo/tempo-data:/var/tempo
   tempo:
     image: *tempoImage 
     networks: [observability]
@@ -29,8 +31,9 @@ services:
       - ./tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
       - ./tempo/tempo-data:/var/tempo
     command: ["-config.file=/etc/tempo/tempo.yaml"]
-    depends_on: [init]
+    depends_on: [tempo-init]
 
+  # Prometheus
   prometheus:
     image: prom/prometheus:latest
     networks: [observability]
@@ -38,14 +41,25 @@ services:
     volumes:
       - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
 
+  # Grafana
+  grafana-init:
+    image: &grafanaImage grafana/grafana:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "472:472"
+      - "/var/lib/grafana"
+    volumes:
+      - ./grafana/grafana-data:/var/lib/grafana
   grafana:
-    image: grafana/grafana:latest
+    image: *grafanaImage 
     networks: [observability]
     ports: 
       - "3000:3000"
     volumes:
       - ./grafana/grafana_custom.ini:/etc/grafana/grafana_custom.ini:ro
       - ./grafana/datasources/grafana_data_sources.yaml:/etc/grafana/provisioning/datasources/grafana_data_sources.yaml:ro
+      - ./grafana/grafana-data:/var/lib/grafana
     environment:
       - "GF_PATHS_CONFIG=/etc/grafana/grafana_custom.ini"
 

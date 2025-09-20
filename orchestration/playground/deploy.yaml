@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-config
+immutable: true      # optional: lock it against edits (nice for safety)
+data:                # string keys -> string values
+  hello.txt: "hi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-deployment
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      volumes:
+        - name: other-demo-cfg
+          configMap:
+            name: demo-config 
+      containers:
+        - name: nginx
+          image: nginx:1.14.2
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: other-demo-cfg
+              mountPath: /cfg
+              readOnly: true
+        - name: redis
+          image: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-service
+spec:
+  type: ClusterIP
+  selector:
+    app: demo
+  ports:
+    - name: http
+      port: 80 # service port
+      targetPort: 80 # container port in the pod
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: demo-service
+              port:
+                number: 80 

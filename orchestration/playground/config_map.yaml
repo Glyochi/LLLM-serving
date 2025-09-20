@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+immutable: true      # optional: lock it against edits (nice for safety)
+data:                # string keys -> string values
+  hello.txt: "hi"
+
