@@ -1,0 +1,36 @@
+tempo:
+  server:
+    http_listen_port: 3200   # exposes /metrics; Prom scrape optional
+  storage:
+    trace:
+      backend: local
+      wal:
+        path: /var/tempo/wal
+      local:
+        path: /var/tempo/blocks
+
+metricsGenerator:
+  enabled: true
+  remoteWriteUrl: "http://prometheus-server.observability.svc.cluster.local.:9090/api/v1/write"   
+
+  # # Label customizations (optional)
+  # externalLabels:
+  #   cluster: "minikube"
+  #   source: "tempo"
+
+service:
+  type: ClusterIP
+ingester:
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# Receive traces via OTLP (so your apps or OTel Collector can send here)
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+

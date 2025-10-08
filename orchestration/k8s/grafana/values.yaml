@@ -1,0 +1,53 @@
+# Expose in minikube (pick ONE of these patterns)
+service:
+  type: NodePort      # or LoadBalancer (with `minikube tunnel`) or ClusterIP + port-forward
+  port: 80
+
+# Persist Grafana's SQLite DB so UI-created dashboards/users survive pod restarts
+persistence:
+  enabled: true
+  type: pvc
+  size: 5Gi
+  accessModes: ["ReadWriteOnce"]
+  # storageClassName: standard  # (minikube default; uncomment if needed)
+
+# Basic auth (dev only—use a Secret in real setups)
+adminUser: admin
+adminPassword: password 
+
+# Provision datasources at startup via Grafana's native provisioning
+# (The chart creates a ConfigMap that is mounted at /etc/grafana/provisioning/datasources)
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    deleteDatasources: []   # nothing to delete on first run
+    # NOTE: Grafana reads this file on pod start. After the first start, your DB persists.
+    # If you change these later and `helm upgrade`, Grafana will reconcile on next pod restart.
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        uid: prometheus
+        access: proxy
+        isDefault: true
+        url: http://prometheus-server.observability.svc.cluster.local.:9090    # <- change to your Prometheus svc (see notes below)
+        jsonData:
+          httpMethod: GET
+
+      # # Optional examples (delete if you don't need them)
+      # - name: Loki
+      #   type: loki
+      #   uid: loki
+      #   access: proxy
+      #   url: http://loki:3100
+
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        access: proxy
+        url: http://tempo.observability.svc.cluster.local.:3200
+        jsonData:
+          tracesToMetrics:
+            datasourceUid: prometheus
+          serviceMap:
+            datasourceUid: prometheus
+

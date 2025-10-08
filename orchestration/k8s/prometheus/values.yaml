@@ -1,0 +1,24 @@
+server:
+  service:
+    enabled: true
+    servicePort: 9090
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+  extraArgs:
+    log.level: debug
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+
+# Full Prometheus config (simple & explicit)
+serverFiles:
+  prometheus.yml:
+
+    scrape_configs:
+      # ====== EDIT THESE TARGETS ======
+      - job_name: "custom-static"
+        static_configs:
+          - targets:
+              - "otel-collector-opentelemetry-collector.observability.svc.cluster.local.:8888"
+              - "triton.observability.svc.cluster.local.:8002"

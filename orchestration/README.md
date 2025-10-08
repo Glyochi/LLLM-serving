@@ -13,6 +13,7 @@
 - minikube: tools for running single-node Kubernetes cluster on local machine
 
 ## Kubernetes
+### General Learning
 - `Kubectl`: cli interface with Kubernetes
 - `Cluster`: 
     - Well a "cluster" is a collection of nodes
@@ -91,9 +92,55 @@
         - Until then, it will cut off the container from `Load Balancer`
 - Mounting Volumes
     - Similar to docker
+- `Operator`
+    - [Resource](https://www.youtube.com/watch?v=QoDqxm7ybLc)
+    - Used for automating deployment of statefull app (Not a simple restart container anymore)
+    - Maintained by community, make sures all instances are synced + deconstruct/construct happens in the correct order
+    - `StatefulSet`
+        - The core instance, managed by the `Operator`
+        - `AlertManager` is part of prometheus operator stack
+- `DaemonSet`
+    - Runs on every `Worker Node`
+    - Prometheus's node-exporter translates `Worker Node` metrics to Prometheus metrics
+- `CRD`/`Custom Resource Definition`
+- `Exporter`
+    - Format metrics data for prometheus, separated from the main metrics source
+    - Opensource somewhere out there
+
+### [IMPORTANT] Quirky K8s
+- How K8s passes args
+    - Each list item in a yaml array is `one argv token`, which means `--trace-config mode=opentelemetry` is one token with a space in the middle
+    - This will cause confusion for passing arguments to a command, which wants to see two tokens `--trace-config` and `mode=opentelemetry`
+    - To bypass this, pass it in as `--trace-config=mode=opentelemetry`
+- How K8s resolve domain name/[concept of `ndots`](https://www.reddit.com/r/kubernetes/comments/duj86x/help_understanding_how_dns_works_and_what_ndots/)
+    - in each pod's `/etc/resolv.conf`, it has something like
+        ```
+        nameserver 10.231.10.10
+        search rando-namespace.svc.cluster.local svc.cluster.local cluster.local
+        options ndots:5
+        ```
+    - This has `ndots` value of 5
+    - Say i have a service call `app-server` running in namespace `other-ns`, and the full service name is `app-server.other-ns.svc.cluster.local` 
+    - The reason i do `nslookup app-server.other-ns` and get an `ip address` back is because i'm doing a DNS lookup for a string with `1 dot in it`, which is less than `5 dots from the above settings` 
+        - It will attempt the following lookups 
+        - `app-server.other-ns.rando-namespace.svc.cluster.local`
+        - `app-server.other-ns.svc.cluster.local` (will resolve here)
+        - `app-server.other-ns.cluster.local`
+        - `app-server.other-ns.` (absolute domain name)
+    - [Quirky] with this knowledge in mind, there's a weird case where `triton.observability.svc.cluster.local` doesnt get resolved but `triton.observability.svc.clutser.local.` with the trailing `.` does 
+        - This is because the second one has 5 dots, which means it wont try all the possible combinations like above => absolute reference to the service
+        - But it also means that some combinations of the tried out domain is causing issue? Why?
+    
+
+
+        
 
 ## minikube
 - minikube start (start a single node cluster)
+- minikube start --driver=docker --gpus=all(Run in a docker container instead of VM)
+- minikube addons enable nvidia-gpu-device-plugin (nvidia stuffs)
+    - kubectl describe node {node_name} | grep -A2 nvidia.com/gpu
+- minikube status
 - minikube ssh
 - minikube ip
 - minikube addons enable ingress
@@ -132,6 +179,7 @@
 - kubectl api-resources
     - to list all API resources along with associated API group and version
 - kubectl apply -f {manifest.yaml}
+- kubectl get all
 - kubectl get nodes/pods
 - kubectl get namespaces
     - kube-system (etcd, api server, scheduler,...)
@@ -141,7 +189,8 @@
     - -c {container_name}
     - --all-containers
     - -f and --since {time like 10s}
-- -L {label key} to add a column of label
+- kubectl exec -it {pod_name} -- /bin/bash
+- -L {label_key} to add a column of label
 - concept of label, can filter by label values
 - concept of deployment of pods
     - kubectl get deployment
@@ -153,7 +202,8 @@
 - concept of a service
 - concept of network policy
 - kubectl get pod {pod_name} -o jsonpath='{}' | jq .spec.containers[].name
-
+- An image with curl for debug: kubectl run test -it --rm --image=curlimages/curl --restart=Never -- sh
+- kubectl port-forward {service-name} 9090 --address='0.0.0.0'
 
 ## Kubernetes Metrics Server
 ```
@@ -170,9 +220,120 @@ This is an extra pod that do autoscaling (horizontal or vertical)
 - Bundle a bunch of manifest file with NO VALUES but PLACEHOLDERS for values into a `chart` aka tarball file
 - Take a `chart`, unzip it and use golang substitution to insert values into the template
 - Then apply that to `kubernetes` to create EVERTHING
+### Prometheus installation
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
+
+### Grafana installation
+```
+helm repo add grafana https://grafana.github.io/helm-charts
+```
+
+### Otel Collector installation
+```
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+```
+
+### Grafana installation
+```
+```
+
+### Triton installation
+- Triton Helm Chart can be found [here](https://catalog.ngc.nvidia.com/orgs/nvidia/helm-charts/tritoninferenceserver?version=1.0.0)
+- However, it seems to be outdated. The current helm chart for triton is based on this with modification made to get it to work with triton 25.06
+    - The binary name is now `tritonserver` and not `trtserver` => changing flags. Refer to `README.md` in `inference folder` in this repo
+    - [Resources on liveness/readiness probe](https://github.com/triton-inference-server/server/issues/6469)
+
+
+### General learning
+- helm show values {chart_name} > {some_yaml_file}
+    - Would show all the overidable params
+- helm chart quirks 
+    - Automatically expose `receiver port`
+    - But doesn't automatically expose `exporter ports`
+    - Have to create a service myself that points to the exposed ports for `exporter`
+- helm simple chart
+    - `Chart.yaml`: metadata about the chart (helm create)
+    - `values.yaml`: default configuration values of the chart, these can be overriden during installation
+    - `templates folder`: 
+        - Folder that contains all templates that uses values from `values.yaml` to create the final Kube manifest files
+        - This is where Golang substitution syntax comes in
+- `Grafana` is reading from `Prometheus`
+- `Prometheus` is scraping `Otel Collector` and `Triton`
+- `Tempo` is writing to `Prometheus` because its [better than scraping?](https://github.com/grafana/tempo/discussions/2621#discussioncomment-6377004)
+- `APP` is writing to `Otel Collector`
+- `Triton` is [chilling](https://catalog.ngc.nvidia.com/orgs/nvidia/helm-charts/tritoninferenceserver?version=1.0.0) 
+
+
+
+- Helpful commands
+    - helm search repo {repo_name} (etc. nvidia/triton)
 
 ## Devbox/Nix
 - Nix is a package manager for reproducible installations (Tho can be used like docker)
 - Devbox is a wrapper around it for newbies like me :(
+
+
+## ECK/ECS/K8s with EC2/Fargate
+- [Resource](https://www.youtube.com/watch?v=AYAh6YDXuho)
+- `ECS`/`Elastic Container Service`
+    - Elastic Container Service
+    - AWS native Control plane
+    - Manages the Containers for us
+    - Containers run on VM machines/`EC2` instances that the Containers run on
+    - `EC2` instances are still managed by user
+        - Has Docker Agent
+        - ECS Agent (for similar purpose to Kubelet)
+        - Has to be created manually and linked to `ECS` ???
+    - Less complex than K8s Cluster and `ECS control plane` is free
+- `EC2`
+    - On-Demand Instance
+        - Fixed price for the type of hardware (g4dn.xlarge vs g5.xlarge)
+        - Guaranteed availability => No interuptions as long as we keep paying the bills (or no outages)
+    - Spot Instance
+        - Up to 90% off On-Demands prices based on supply/demand
+        - Using spare AWS capacity, can be terminated by AWS with a two-minute warning when the capacitiy is claimed by someone else
+        - Has to implement workaround interruption
+    - Has full control over what is on the `EC2` instance
+        - OS
+        - Packages/Dependencies
+        - Configurations
+        - ...
+- `Fargate`
+    - Alternative to creating `EC2` instances manually
+    - Serveless way to launch containers, by spinning up VM on demand
+    - Where that containers end up, is not determined by us, just whatever server 
+    provisioned by `Fargate` that is free and enough resources to run the container
+    - Cheap because only pay for what the containers is using
+        - how long is it running
+        - how much capacity is being consumed
+    - Has less control than `EC2` instances because VM is being managed by `Fargate`, you can only control the containers
+- `EKS`/`Elastic Kubernetes Service`
+    - Manage K8s Cluster on AWS
+    - Continue to use K8s API + all the community tools (Helm,...)
+    - "Easily" migrate to other platforms, or at least easier than `ECS` (If not dependent on a lot of AWS services)
+    - How it works
+        - Control Plane is AWS Native
+            - `EKS` deploys and manages `Kubernetes Master Nodes`
+            - K8s Master Services already on them Nodes (Controller stuffs for managing pods/containers)
+            - Master Nodes (including etcd data) automatic replicated accross Availability Zones => HIGH AVAILABILITY
+            => Don't worry about it
+        - Worker Nodes
+            - Has to create them `EC2` instances (Da Compute Fleet) manually 
+            - Or use `Nodegroup` (semi-managed)
+                - Creates, deletes `EC2` instances for you, but you need to configure it (Huh kinda like what `Replicaset` is to `Pod`)
+                - Worker nodes managed by `Nodegroup` will get all the processes necessary installed on them (Container runtime, Worker processes,...)
+                - Still have to configure other stuffs like auto scaling
+            - Or let them be managed by `Fargate` (fully-managed)
+            - Then connect them to `EKS`
+            - Has Docker Agent
+            - Has K8s Processes (Kubelet) to communicate with the control plane
+        - Once the cluster is configured, we can connect to the cluster using `kubectl` and start deploying containers
+- [NOTE] `ECS` and `EKS` can also have a mix of `EC2` and `Fargate` as well, doesn't have to be just one
+- `ECR`/`Elastic Container Registry`
+    - App images registry
+    - Easily integrated with `ECS`/`EKS`
+    - Some CI/CD integration as well which is noice
 
 

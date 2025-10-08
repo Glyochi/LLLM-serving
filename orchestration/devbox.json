@@ -7,7 +7,8 @@
     "k9s@latest",
     "oras@latest",
     "yq@latest",
-    "minikube@latest"
+    "minikube@latest",
+    "kubernetes-helm@latest"
   ],
   "shell": {
     "init_hook": [

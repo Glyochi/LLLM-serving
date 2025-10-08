@@ -1,0 +1,14 @@
+# --- image / container ---
+nameOverride: triton
+image:
+  #imageName: gemma-3-triton-server
+  imageName: nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
+
+  tag: "latest"      # or "25.06" if you actually publish tags
+  pullPolicy: IfNotPresent
+  numGpus: 1
+
+modelRepository:
+  name: triton-models-pvc
+
+

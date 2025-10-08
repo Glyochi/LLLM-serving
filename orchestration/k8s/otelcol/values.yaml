@@ -1,0 +1,61 @@
+mode: deployment
+image:
+  # Using contrib version for prometheus support
+  repository: otel/opentelemetry-collector-contrib
+  tag: 0.90.0 # Use a specific, known-good tag
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+
+ports:
+  metrics:
+    enabled: true
+    containerPort: 8888
+    servicePort: 8888
+    protocol: TCP
+
+# Core collector config
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc: {}
+        http: {}
+
+
+  processors:
+    batch: {}
+    # add resource/attributes processors if you want to relabel
+
+  exporters:
+    prometheus:
+      # Expose a port on this container for prometheus to scrape
+      endpoint: "0.0.0.0:9464"
+
+    # Typical: send traces to Tempo
+    otlp/tempo:
+      endpoint: "tempo.observability.svc.cluster.local.:4317"
+      tls:
+        insecure: true
+
+    logging:
+      loglevel: debug
+
+  # Pipelines—enable what you need
+  service:
+    telemetry:
+      metrics:
+        address: 0.0.0.0:8888
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [otlp/tempo]
+
+      metrics:
+        receivers: [otlp]
+        processors: [batch]
+        # Choose one or both exporters:
+        exporters: [logging, prometheus]
+
