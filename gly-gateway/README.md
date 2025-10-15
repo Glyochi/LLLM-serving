@@ -42,6 +42,11 @@ mvn wrapper:wrapper (To generate mvnw. Not sure why tho need to read more)
 ./mvnw test
 ```
 
+# Containerization
+- Base image: `openjdk:22-jdk-slim`
+- Image name: `glygateway:latest` 
+- `docker build -t glygateway .`
+
 
 # What are beans
 - [Beans](https://www.reddit.com/r/SpringBoot/comments/y8xitr/what_beans_exactly_are/)

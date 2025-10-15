@@ -32,6 +32,17 @@ echo "Running script in $ENVIRONMENT environment."
 # mvn spring-boot:run -Dspring-boot.run.profiles=$ENVIRONMENT
 # mvn clean install
 mvn clean install 
+
+cd ./target
+matches=(glygateway*.jar)
+if (( ${#matches[@]} == 1 )); then
+  mv -- "${matches[0]}" "app.jar"
+else
+  echo "ERROR no built jar file"
+  exit
+fi
+cd -
+
 docker compose down && docker compose up
 
 

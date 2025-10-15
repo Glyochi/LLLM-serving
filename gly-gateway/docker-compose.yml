@@ -9,8 +9,8 @@ services:
     ports:
       - "8090:8090"
     volumes:
-      - ./target/glygateway-0.0.1-SNAPSHOT.jar:/app.jar
-    entrypoint: ["java", "-jar", "app.jar"]
+      - ./target/app.jar:/app/app.jar
+    entrypoint: ["java", "-jar", "/app/app.jar"]
     #environment:
       #JAVA_TOOL_OPTIONS: "-javaagent:agent.jar"
       #OTEL_SERVICE_NAME: "glygateway"
