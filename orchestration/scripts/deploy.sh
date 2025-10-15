@@ -1,26 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-retry() {
-  local -r max_tries="$1"; shift
-  local -i n=1
-  local rc=0
-  local sleep_time=4
-
-  until "$@"; do           # <- a failing condition won't exit the script with -e
-    rc=$?
-    if (( n >= max_tries )); then
-      echo "Failed after $n attempts (rc=$rc)" >&2
-      return "$rc"
-    fi
-    echo "Attempt $n failed (rc=$rc); retrying in ${sleep_time}s..." >&2
-    sleep $sleep_time
-    ((n++))
-    # For some reasons if stopping the script and running it right away sometimes fail to check if pods are running
-    # Getting into a new shell helps fix this 
-    #exec -l bash
-  done
-}
 
 NAMESPACE="observability"
 SRC_DIR="/home/gly/projects/netflix/observability"
@@ -60,4 +40,5 @@ helm upgrade --install triton ./k8s/triton \
   -n observability \
   -f k8s/triton/triton.yaml
 
-retry 5 kubectl port-forward "service/grafana" 30558:80 -n observability --address='0.0.0.0'
+helm upgrade --install gateway ./k8s/gateway \
+  -n observability

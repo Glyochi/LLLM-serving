@@ -1,13 +1,14 @@
+{{- if .Values.mountedCode.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.pvc.name }}
-  namespace: {{ .Values.pvc.namespace }}
+  name: {{ .Values.mountedCode.pvc.name }}
+  namespace: {{ .Values.mountedCode.pvc.namespace }}
 spec:
-  accessModes: {{ toJson .Values.pvc.accessModes }}
+  accessModes: {{ toJson .Values.mountedCode.pvc.accessModes }}
   resources:
     requests:
-      storage: {{ .Values.pvc.size }}
-  storageClassName: {{ .Values.pvc.storageClassName | quote }}
-  volumeName: {{ .Values.pvc.volumeName }}
-
+      storage: {{ .Values.mountedCode.pvc.size }}
+  storageClassName: {{ .Values.mountedCode.pvc.storageClassName | quote }}
+  volumeName: {{ .Values.mountedCode.pvc.volumeName }}
+{{- end }}

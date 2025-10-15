@@ -1,13 +1,15 @@
+{{- if .Values.mountedCode.enabled }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Values.pv.name }}
+  name: {{ .Values.mountedCode.pv.name }}
 spec:
   capacity:
-    storage: {{ .Values.pv.size }}
-  accessModes: {{ toJson .Values.pv.accessModes }}
-  storageClassName: {{ .Values.pv.storageClassName | quote }}
-  persistentVolumeReclaimPolicy: {{ .Values.pv.reclaimPolicy }}
+    storage: {{ .Values.mountedCode.pv.size }}
+  accessModes: {{ toJson .Values.mountedCode.pv.accessModes }}
+  storageClassName: {{ .Values.mountedCode.pv.storageClassName | quote }}
+  persistentVolumeReclaimPolicy: {{ .Values.mountedCode.pv.reclaimPolicy }}
   hostPath:
-    path: {{ .Values.pv.hostPath | quote }}
+    path: {{ .Values.mountedCode.pv.hostPath | quote }}
+{{- end }}
 

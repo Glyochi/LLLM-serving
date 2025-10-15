@@ -1,108 +1,96 @@
-# Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of NVIDIA CORPORATION nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "tensorrt-inference-server.fullname" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "gateway.fullname" . }}
   labels:
-    app: {{ template "tensorrt-inference-server.name" . }}
-    chart: {{ template "tensorrt-inference-server.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "gateway.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      app: {{ template "tensorrt-inference-server.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "gateway.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app: {{ template "tensorrt-inference-server.name" . }}
-        release: {{ .Release.Name }}
-
+        {{- include "gateway.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
+      {{- if .Values.mountedCode.enabled }}
       volumes:
-        - name: triton-model-repository
+        - name: mounted-code-volume 
           persistentVolumeClaim:
-            claimName: {{ .Values.modelRepository.name }}
+            claimName: {{ .Values.mountedCode.name }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "gateway.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.image.imageName }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
-          resources:
-            limits:
-              nvidia.com/gpu: {{ .Values.image.numGpus }}
+          args:
+            - "java"
+            - "-jar"
+            - "app.jar"
 
-          args: ["tritonserver", "--model-repository=/opt/tritonserver/projects/model-repository", "--log-verbose=1", "--exit-on-error=false"]
-          env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /secret/gcp-creds.json
-
+          {{- if .Values.mountedCode.enabled }}
           volumeMounts:
-            - name: triton-model-repository
-              mountPath: /opt/tritonserver/projects/model-repository
+            - name: mounted-code-volume 
+              mountPath: /app
+          {{- end }}
 
           ports:
-            - containerPort: 8000
-              name: http
-            - containerPort: 8001
-              name: grpc
-            - containerPort: 8002
-              name: metrics
-          livenessProbe:
-            initialDelaySeconds: 15
-            failureThreshold: 3
-            periodSeconds: 10
-
-            httpGet:
-              path: /v2/health/live
-              port: http
-
-          readinessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            failureThreshold: 3
-
-            httpGet:
-              path: /v2/health/ready
-              port: http
-
-          startupProbe:
-              periodSeconds: 10
-              failureThreshold: 30
-
-              httpGet:
-                path: /v2/health/ready
-                port: http
-
-          securityContext:
-            runAsUser: 1000
-            fsGroup: 1000
-
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- with .Values.livenessProbe }}
+          LivenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          ReadinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
