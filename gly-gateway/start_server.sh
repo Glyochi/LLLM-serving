@@ -37,12 +37,14 @@ cd ./target
 matches=(glygateway*.jar)
 if (( ${#matches[@]} == 1 )); then
   mv -- "${matches[0]}" "app.jar"
+  sudo chown 777 "app.jar"
 else
   echo "ERROR no built jar file"
   exit
 fi
+
 cd -
 
-docker compose down && docker compose up
+#docker compose down && docker compose up
 
 

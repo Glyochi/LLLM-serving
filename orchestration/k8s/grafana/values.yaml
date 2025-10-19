@@ -9,7 +9,7 @@ persistence:
   type: pvc
   size: 5Gi
   accessModes: ["ReadWriteOnce"]
-  # storageClassName: standard  # (minikube default; uncomment if needed)
+  #storageClassName: standard  # (minikube default; uncomment if needed)
 
 # Basic auth (dev only—use a Secret in real setups)
 adminUser: admin

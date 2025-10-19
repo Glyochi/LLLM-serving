@@ -50,7 +50,7 @@ spec:
           args:
             - "java"
             - "-jar"
-            - "app.jar"
+            - "/app/target/app.jar"
 
           {{- if .Values.mountedCode.enabled }}
           volumeMounts:

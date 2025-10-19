@@ -19,7 +19,7 @@ mountedCode:
   # Mounted volume for development 
   pv:
     name: mounted-code-pv
-    size: 100Gi
+    size: 20Gi
     hostPath: /mnt/gly-gateway
     storageClassName: ""     # empty => 'no storage class'
     accessModes: ["ReadWriteOnce"]
@@ -28,7 +28,7 @@ mountedCode:
   pvc:
     name: mounted-code-pvc
     namespace: observability  # where Triton runs
-    size: 100Gi
+    size: 20Gi
     storageClassName: ""      # must match PV
     accessModes: ["ReadWriteOnce"]
     volumeName: mounted-code-pv
