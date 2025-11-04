@@ -23,6 +23,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       {{- if .Values.mountedCode.enabled }}
       volumes:
         - name: mounted-code-volume 

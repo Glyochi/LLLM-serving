@@ -61,6 +61,7 @@
     - [Comparison](https://stackoverflow.com/questions/45079988/ingress-vs-load-balancer)
     - `ClusterIP`
         - Provide an internal load balancer/round robin that distribute works among all the `Pods` in a `Deployment`
+        - For internal uses only, not to expose endpoint outward
     - `NodePort` (built upon `ClusterIP`)
         - Expose a port on every `Node` in the `Cluster`
     - `Load Balancer` (built upon `NodePort`)
@@ -127,12 +128,10 @@
         - `app-server.other-ns.svc.cluster.local` (will resolve here)
         - `app-server.other-ns.cluster.local`
         - `app-server.other-ns.` (absolute domain name)
-    - [Quirky] with this knowledge in mind, there's a weird case where `triton.observability.svc.cluster.local` doesnt get resolved but `triton.observability.svc.clutser.local.` with the trailing `.` does 
+    - [Quirky] with this knowledge in mind, there's a weird case where `triton.observability.svc.cluster.local` doesnt get resolved but `triton.observability.svc.clutser.local` with the trailing `.` does 
         - This is because the second one has 5 dots, which means it wont try all the possible combinations like above => absolute reference to the service
         - But it also means that some combinations of the tried out domain is causing issue? Why?
     
-
-
         
 
 ## minikube
@@ -191,6 +190,8 @@
     - -f and --since {time like 10s}
 - kubectl exec -it {pod_name} -- /bin/bash
 - -L {label_key} to add a column of label
+- -l {label_key=label_value} to filter out with labels
+- --field-selector to filter out objects based on fields within the k8s object's manifest
 - concept of label, can filter by label values
 - concept of deployment of pods
     - kubectl get deployment
@@ -202,8 +203,24 @@
 - concept of a service
 - concept of network policy
 - kubectl get pod {pod_name} -o jsonpath='{}' | jq .spec.containers[].name
-- An image with curl for debug: kubectl run test -it --rm --image=curlimages/curl --restart=Never -- sh
+- An image with curl for debug:
+    `
+    kubectl run test -it --rm \
+  --image=curlimages/curl \
+  --restart=Never \
+  --overrides='{
+    "spec": {
+      "dnsConfig": {
+        "options": [
+          { "name": "ndots", "value": "1" }
+        ]
+      }
+    }
+  }' \
+  -- sh
+    `
 - kubectl port-forward {service-name} 9090 --address='0.0.0.0'
+- `watch -n 0.1 'watch -n 0.1 kubectl -n observability get pods -o wide'`
 
 ## Kubernetes Metrics Server
 ```
@@ -336,4 +353,47 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
     - Easily integrated with `ECS`/`EKS`
     - Some CI/CD integration as well which is noice
 
+# How to use minikube to run locally
+- Run `minikube_setup.sh` to setup minikube locally 
+    - It loads a bunch of images locally. But directly loading them to the image cluster everytime sometimes fail for bigger iamges
+    - Because of that, we run `docker save` to save multiple images into the same file `docker.img` and load that file instead, which is [more efficient](https://github.com/kubernetes/minikube/issues/17785#issuecomment-1906422218)
+        - We only have to do this once. So comment out the export after the first run
+- Mounting 
+    - `minikube mount` doesn't really allow you to target a specific node or all nodes, so you could only mount to the main node which is weird
+    - settle for `--mount-string` in the start command, which only allow 1 volume, but does apply accross all nodes
 
+# Deployment
+- Run `scripts/deploy.sh` to deploy locally
+- Run `scripts/ports_forward.sh` to expose the ports locally
+- Two types of nodes (Diagram below)
+    - `central-node-label`
+    - `inference-node-label`
+- All pods are configured with dnsConfig ndots value of `1` so that we use `absolute name` everywhere. This helps solve the `ndots issue` described above
+- Tagging/Labeling
+    - Otel edge collector label incoming traces/metrics with according node info
+    - Otel Collector labelling + Exporting to Prometheus
+        - [Prometheus doesn't current support Otel rich labels](https://community.grafana.com/t/otel-metrics-resources-attributes-gets-dropped-when-exported-to-grafana-cloud/119355)
+        - Using [experiemental features for auto conversion](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/15349#issuecomment-1285609773) 
+
+# Nodes/Deployment Structure
+```
+LOCAL SETUP
+
+┌─────────┐
+│Edge Node│
+└─────────┘
+┌─ Prometheus Node Exporter (node metrics (pull))
+│ ┌─ Gateway (traces export (push))
+│ ├─ Triton (metrics endpoint (pull) + trace export (push))
+└ Otel-edge-opentelemetry-collector (Tag with edge node labels)
+  │
+x │
+│ │   ┌────────────┐
+│ │   │Central Node│
+│ │   └────────────┘
+│ └── Otel-central-opentelemetry-collector
+└─────┼── Prometheus (metrics) ┐ 
+      ├── Tempo (traces) ──────┤ 
+      └── Loki (logs) ─────────┤
+                               └─ Grafana (UI)
+```

@@ -1,0 +1,129 @@
+mode: deployment
+image:
+  # Using contrib version for prometheus support
+  repository: otel/opentelemetry-collector-contrib
+  tag: 0.90.0 # Use a specific, known-good tag
+  pullPolicy: IfNotPresent
+
+dnsConfig:
+  options:
+    - name: ndots
+      value: "1"
+
+service:
+  type: ClusterIP
+
+ports:
+  metrics:
+    enabled: true
+    containerPort: 8888
+    servicePort: 8888
+    protocol: TCP
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false
+
+
+
+# Core collector config
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc: {}
+        http: {}
+    prometheus/triton:
+      config:
+        scrape_configs:
+          - job_name: "triton"
+            scrape_interval: 15s
+            static_configs:
+              - targets: ["triton.observability.svc.cluster.local:8002"]
+    prometheus/node:
+      config:
+        scrape_configs:
+          - job_name: "prometheus-node-exporter"
+            scrape_interval: 15s
+            static_configs:
+              - targets: ["prometheus-prometheus-node-exporter.observability.svc.cluster.local:9100"]
+
+  processors:
+    batch: {}
+
+    resource/node-identifier:
+      attributes:
+        - key: pod_name 
+          action: upsert
+          value: ${env:HOSTNAME}            # or ${POD_NAME}, device id, etc.
+        - key: node_name
+          action: upsert
+          value: ${env:NODE_NAME}
+        - key: node_label_app 
+          action: upsert
+          value: ${env:NODE_LABEL_APP}
+
+
+  exporters:
+    # Typical: send traces to Tempo
+    otlp/central:
+      endpoint: otel-central-opentelemetry-collector.observability.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+    logging/metrics:
+      verbosity: detailed
+
+
+  # Pipelines—enable what you need
+  service:
+    telemetry:
+      metrics:
+        address: 0.0.0.0:8888
+    pipelines:
+      # Traces
+      traces:
+        receivers: [otlp]
+        processors: [resource/node-identifier, batch]
+        exporters: [otlp/central]
+
+      # Metrics
+      metrics/triton:
+        receivers: [prometheus/triton]
+        processors: [resource/node-identifier, batch]
+        exporters: [logging/metrics, otlp/central]
+
+      metrics/gateway:
+        receivers: [otlp]
+        processors: [resource/node-identifier, batch]
+        exporters: [logging/metrics, otlp/central]
+
+      #metrics/node:
+      #  receivers: [prometheus/node]
+      #  processors: [resource/node-identifier, batch]
+      #  exporters: [logging/metrics, otlp/central]
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: app 
+          operator: In
+          values: ["inference-node-label"]
+
+# This is for getting node specific info for relabelling above 
+# Using downward api to get info about the nodes, without using k8s client
+extraEnvs:
+  - name: HOSTNAME
+    valueFrom:
+      fieldRef: { fieldPath: metadata.name }
+  - name: NODE_NAME
+    valueFrom:
+      fieldRef: { fieldPath: spec.nodeName }
+  - name: NODE_LABEL_APP
+    value: "inference-node-label"

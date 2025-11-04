@@ -2,8 +2,12 @@ server:
   service:
     enabled: true
     servicePort: 9090
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "1"
   persistentVolume:
-    enabled: true
+    enabled: false 
     size: 8Gi
   extraArgs:
     log.level: debug
@@ -11,14 +15,81 @@ server:
     scrape_interval: 15s
     evaluation_interval: 15s
 
+  # Have to make this init container to change permission. Not entirely sure why this only happens when running in multiple nodes setup
+  extraInitContainers:
+  - name: volume-permissions
+    image: busybox:1.36
+    command: ["sh","-c","chown -R 65534:65534 /data || true"]
+    securityContext:
+      runAsUser: 0
+    volumeMounts:
+      - name: storage-volume   # name must match the server's data volume in the chart
+        mountPath: /data
+  # Allow to run as 65534 for init container
+  securityContext:
+    runAsNonRoot: false
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: app 
+            operator: In
+            values: ["central-node-label"]
+
+# centralized alerting component for prometheus ecosystem (Go to email/slack/...)
+alertmanager:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: app 
+            operator: In
+            values: ["central-node-label"]
+
+# Add-on service that listens to Kubernetes api server
+kube-state-metrics:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: app 
+            operator: In
+            values: ["central-node-label"]
+
+# Collect node metrics (hardware) so should run on all nodes
+prometheus-node-exporter:
+
+# Short lived tasks metrics that die too fast for prometheus to scrape them?
+prometheus-pushgateway:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: app 
+            operator: In
+            values: ["central-node-label"]
+
 # Full Prometheus config (simple & explicit)
 serverFiles:
   prometheus.yml:
 
     scrape_configs:
       # ====== EDIT THESE TARGETS ======
-      - job_name: "custom-static"
+      - job_name: "otel-central-metrics"
         static_configs:
           - targets:
-              - "otel-collector-opentelemetry-collector.observability.svc.cluster.local.:8888"
-              - "triton.observability.svc.cluster.local.:8002"
+              - "otel-central-opentelemetry-collector.observability.svc.cluster.local:8888"
+      - job_name: "otel-central"
+        honor_labels: true
+        scrape_interval: 15s
+        scrape_timeout: 10s
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets:
+              - "otel-central-opentelemetry-collector.observability.svc.cluster.local:9464"

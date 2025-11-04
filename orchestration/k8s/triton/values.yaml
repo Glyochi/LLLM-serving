@@ -35,9 +35,9 @@ service:
   type: ClusterIP
 
 pv:
-  name: triton-models-pv
+  name: local-triton-models-pv
   size: 100Gi
-  hostPath: /mnt/model-repository
+  hostPath: /mnt/projects/inference-server/model-repository
   storageClassName: ""     # empty => 'no storage class'
   accessModes: ["ReadWriteOnce"]
   reclaimPolicy: Retain     # change to Delete if you want Helm uninstall to remove data
@@ -48,10 +48,10 @@ pvc:
   size: 100Gi
   storageClassName: ""      # must match PV
   accessModes: ["ReadWriteOnce"]
-  volumeName: triton-models-pv
+  volumeName: local-triton-models-pv
 
 modelRepository:
   name: triton-models-pvc
 
 opentelemetry: 
-  url: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local.:4318/v1/traces"
+  url: "http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/traces"

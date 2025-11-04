@@ -51,6 +51,10 @@ spec:
         - name: triton-model-repository
           persistentVolumeClaim:
             claimName: {{ .Values.modelRepository.name }}
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.imageName }}"

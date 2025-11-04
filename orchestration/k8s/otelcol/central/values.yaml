@@ -5,6 +5,11 @@ image:
   tag: 0.90.0 # Use a specific, known-good tag
   pullPolicy: IfNotPresent
 
+dnsConfig:
+  options:
+    - name: ndots
+      value: "1"
+
 service:
   type: ClusterIP
 
@@ -14,6 +19,19 @@ ports:
     containerPort: 8888
     servicePort: 8888
     protocol: TCP
+  prometheus:
+    enabled: true
+    containerPort: 9464
+    servicePort: 9464
+    protocol: TCP
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false
 
 # Core collector config
 config:
@@ -23,24 +41,27 @@ config:
         grpc: {}
         http: {}
 
-
   processors:
     batch: {}
-    # add resource/attributes processors if you want to relabel
 
   exporters:
     prometheus:
       # Expose a port on this container for prometheus to scrape
       endpoint: "0.0.0.0:9464"
+      enable_open_metrics: true
+      # Static label for all metrics exporting through this
+      const_labels:
+        pipeline: "edge-aggregated"
+      resource_to_telemetry_conversion:
+        enabled: true   # 👈 promote resource attrs to labels
 
-    # Typical: send traces to Tempo
     otlp/tempo:
-      endpoint: "tempo.observability.svc.cluster.local.:4317"
+      endpoint: "tempo.observability.svc.cluster.local:4317"
       tls:
         insecure: true
 
     logging:
-      loglevel: debug
+      verbosity: detailed 
 
   # Pipelines—enable what you need
   service:
@@ -56,6 +77,13 @@ config:
       metrics:
         receivers: [otlp]
         processors: [batch]
-        # Choose one or both exporters:
-        exporters: [logging, prometheus]
+        exporters: [prometheus]
 
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: app 
+          operator: In
+          values: ["central-node-label"]

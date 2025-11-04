@@ -9,7 +9,7 @@ persistence:
   type: pvc
   size: 5Gi
   accessModes: ["ReadWriteOnce"]
-  #storageClassName: standard  # (minikube default; uncomment if needed)
+  storageClassName: standard  # (minikube default; uncomment if needed)
 
 # Basic auth (dev only—use a Secret in real setups)
 adminUser: admin
@@ -29,7 +29,7 @@ datasources:
         uid: prometheus
         access: proxy
         isDefault: true
-        url: http://prometheus-server.observability.svc.cluster.local.:9090    # <- change to your Prometheus svc (see notes below)
+        url: http://prometheus-server.observability.svc.cluster.local:9090    # <- change to your Prometheus svc (see notes below)
         jsonData:
           httpMethod: GET
 
@@ -44,10 +44,23 @@ datasources:
         type: tempo
         uid: tempo
         access: proxy
-        url: http://tempo.observability.svc.cluster.local.:3200
+        url: http://tempo.observability.svc.cluster.local:3200
         jsonData:
           tracesToMetrics:
             datasourceUid: prometheus
           serviceMap:
             datasourceUid: prometheus
 
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: app 
+          operator: In
+          values: ["central-node-label"]
+
+# Getting some permission issue with /var/lib/grafana, this helps the busybox container get pass that
+initChownData:
+  securityContext:
+    runAsUser: 472 

@@ -11,7 +11,7 @@ tempo:
 
 metricsGenerator:
   enabled: true
-  remoteWriteUrl: "http://prometheus-server.observability.svc.cluster.local.:9090/api/v1/write"   
+  remoteWriteUrl: "http://prometheus-server.observability.svc.cluster.local:9090/api/v1/write"   
 
   # # Label customizations (optional)
   # externalLabels:
@@ -33,4 +33,15 @@ receivers:
         endpoint: 0.0.0.0:4318
       grpc:
         endpoint: 0.0.0.0:4317
+  # Have not figured out how to disable unused ports for jaeger and opencensus
+  jaeger: 
+  opencensus: 
 
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: app 
+          operator: In
+          values: ["central-node-label"]

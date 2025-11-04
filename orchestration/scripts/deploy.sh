@@ -32,9 +32,14 @@ helm upgrade --install tempo grafana/tempo \
   -n observability \
   -f k8s/tempo/values.yaml
 
-helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+helm upgrade --install otel-central open-telemetry/opentelemetry-collector \
   -n observability \
-  -f k8s/otelcol/values.yaml
+  --wait --timeout 1m \
+  -f k8s/otelcol/central/values.yaml
+
+helm upgrade --install otel-edge open-telemetry/opentelemetry-collector \
+  -n observability \
+  -f k8s/otelcol/edge/values.yaml
 
 helm upgrade --install triton ./k8s/triton \
   -n observability \

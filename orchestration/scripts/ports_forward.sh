@@ -18,6 +18,7 @@ echo "FORWARDING..."
 
 kubectl port-forward "service/grafana" 30558:80 -n observability --address='0.0.0.0' &
 kubectl port-forward "service/gateway" 8090:8090 -n observability --address='0.0.0.0' &
+kubectl port-forward "service/triton" 8002:8002 -n observability --address='0.0.0.0' &
 
 while true
 do

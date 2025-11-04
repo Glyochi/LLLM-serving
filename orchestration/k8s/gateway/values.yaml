@@ -20,7 +20,7 @@ mountedCode:
   pv:
     name: mounted-code-pv
     size: 20Gi
-    hostPath: /mnt/gly-gateway
+    hostPath: /mnt/projects/gly-gateway
     storageClassName: ""     # empty => 'no storage class'
     accessModes: ["ReadWriteOnce"]
     reclaimPolicy: Retain     # change to Delete if you want Helm uninstall to remove data
@@ -146,4 +146,11 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity: {}
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: app 
+          operator: In
+          values: ["inference-node-label"]
