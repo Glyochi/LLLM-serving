@@ -8,7 +8,7 @@ server:
   port: 8090
 
 triton:
-  host: triton.observability.svc.cluster.local.
+  host: "triton.observability.svc.cluster.local"
   http-port: 8000
   grpc-port: 8001
   timeout-ms: 30000
@@ -32,9 +32,9 @@ management:
       probability: 1.0
   otlp:
     tracing:
-      endpoint: http://otel-collector-opentelemetry-collector.observability.svc.cluster.local.:4318/v1/traces
+      endpoint: http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/traces
     metrics:
-      url: http://otel-collector-opentelemetry-collector.observability.svc.cluster.local.:4318/v1/metrics
+      url: http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/metrics
       batchSize: 15000
       aggregationTemporality: "cumulative"
       headers:

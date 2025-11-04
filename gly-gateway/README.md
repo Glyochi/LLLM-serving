@@ -556,16 +556,10 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
         - opentelemetry-exporter-otlp for convert micrometer to otlp format
 - Notes
     - For inbound and outbound requests, micrometers when integrated with OTEL automatically handles the creation and propagation of traceId and spanId 
-- CURRENT PROGRESS
     - Got micrometer with Otel tracing working, and it automatically creates traces/spans for inbound/outbound requests
-    - However, could not add custom spans inside those automatic traces. Ended up creating a separted traces => Bad
-    - Found out that was because Reactor Core needs `reactor-core-micrometer` module as well as `reactor-core` module (why is it not imported initially, how is reactive event loop working wthelly)
+    - Found out that Reactor Core needs `reactor-core-micrometer` module as well as `reactor-core` module to do tracing
     - [DOCS](https://projectreactor.io/docs/core/release/reference/metrics.html)
     - Now we can manually add metrics/tracings => GUD
-- NEXT TASK
-    - Figure out version for `reactor-core-micrometer` and `reactor-core`.
-    - Clean up pom.xml + code
-    - Start adding custom spans and tags and shessh
 
 
 
