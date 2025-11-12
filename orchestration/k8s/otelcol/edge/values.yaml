@@ -67,7 +67,6 @@ config:
           action: upsert
           value: ${env:NODE_LABEL_APP}
 
-
   exporters:
     # Typical: send traces to Tempo
     otlp/central:
@@ -75,7 +74,7 @@ config:
       tls:
         insecure: true
 
-    logging/metrics:
+    logging:
       verbosity: detailed
 
 
@@ -91,21 +90,21 @@ config:
         processors: [resource/node-identifier, batch]
         exporters: [otlp/central]
 
-      # Metrics
+      ## Metrics
       metrics/triton:
         receivers: [prometheus/triton]
         processors: [resource/node-identifier, batch]
-        exporters: [logging/metrics, otlp/central]
-
+        exporters: [otlp/central]
+      
       metrics/gateway:
         receivers: [otlp]
         processors: [resource/node-identifier, batch]
-        exporters: [logging/metrics, otlp/central]
+        exporters: [otlp/central]
 
-      #metrics/node:
-      #  receivers: [prometheus/node]
-      #  processors: [resource/node-identifier, batch]
-      #  exporters: [logging/metrics, otlp/central]
+      metrics/node:
+        receivers: [prometheus/node]
+        processors: [resource/node-identifier, batch]
+        exporters: [otlp/central]
 
 affinity:
   nodeAffinity:

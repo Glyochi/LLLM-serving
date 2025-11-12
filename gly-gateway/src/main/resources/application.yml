@@ -1,6 +1,6 @@
 spring:
   application:
-    name: gly-gateway
+    name: glygateway
   main:
     banner-mode: "off"
 
@@ -27,6 +27,10 @@ models:
 
 # Auto loaded in by otlp auto config
 management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus,metrics"
   tracing:
     sampling:
       probability: 1.0
@@ -34,14 +38,12 @@ management:
     tracing:
       endpoint: http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/traces
     metrics:
-      url: http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/metrics
-      batchSize: 15000
-      aggregationTemporality: "cumulative"
-      headers:
-        header1: value1
-      step: 30s
-      resourceAttributes:
-        key1: value1
+      export:
+        url: http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/metrics
+        step: 5s
+    opentelemetry:
+      resource-attributes:
+        service.name: ${spring.application.name}
 
 
 logging:

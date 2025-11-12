@@ -50,8 +50,9 @@ config:
       endpoint: "0.0.0.0:9464"
       enable_open_metrics: true
       # Static label for all metrics exporting through this
-      const_labels:
-        pipeline: "edge-aggregated"
+      # Becareful not to have duplicate constant and variable labels
+      # const_labels:
+      #   pipeline: "edge-aggregated"
       resource_to_telemetry_conversion:
         enabled: true   # 👈 promote resource attrs to labels
 

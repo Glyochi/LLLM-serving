@@ -9,6 +9,7 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 
+// This is for propagating the traceId to the grpc calls to Triton, so triton's spans can be linked to the originated requests
 @Configuration
 class GrpcTracingConfig {
 

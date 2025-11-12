@@ -470,7 +470,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - in prod its 1 line json for easy log scrapping
     - in dev its structured and human-readable
     
-# Traces, Metrics, Logs 
+# Traces, Metrics, Logs Overview
 - [Comprehensive overview](https://www.youtube.com/watch?v=fh3VbrPvAjg)
 - Code walkthrough example 
     - [video 1](https://www.youtube.com/watch?v=Qyku6cR6ADY)
@@ -509,7 +509,7 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
         - `Grafana Loki`
     - Micrometer observation api
         - Abstraction over Traces, Metrics, and Logs module
-    - Micrometer Core
+    - Micrometer Core? I think its actually Spring actuator 
         - counters, timers, gauges (metrics)
     - Micrometer Tracing
         - add traces/spans support, but no specific implementations
@@ -541,29 +541,39 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
     - Let's just go with the harder way just to understand whats happening underthe hood => Spring supported way
 
 # [Micrometer Observation Api](https://docs.micrometer.io/micrometer/reference/observation/introduction.html)
-- Plan is to use
-    - Micrometer
-    - OTel tracing `micrometer-tracing-bridge-otel` + OTLP converter (`opentelemetry-exporter-otlp` for traces and `micrometer-registry-otlp` and metrics) 
+
+# Action Plan, what I'm using 
+- Summarize packages and what we using/what they do
+    - Micrometer 
+        - just a facade, no actual implementation, needs to provide implementations through imported packages
+        - This is what I want to use. Because tight integration with Spring Boot (unless i have other reasons in the future)
+    - Tracing
+        - `micrometer-tracing-bridge-otel` OTel tracing implementation 
+        - `opentelemetry-exporter-otlp` only for OpenTelemetry natively produce logs, traces, metrics export. Not micrometer. 
+    - Metrics
+        - `spring-boot-starter-actuator` Spring Metrics implementation
+        - `micrometer-registry-otlp` sends micrometer-produced metrics via OTLP protocol
+    - Others
+        - `opentelemetry-instrument-bom` for opentelemetry dependencies version allignment (ensure no conflicts)
+        - `reactor-core-micrometer` (reactor module for interfacing with micrometer)
     - Grafana everything
     - Send metrics to Prometheus/Grafana, traces to Tempo/Jaeger, logs to Loki.
+
 - Setup
     - application.yml
         - logging pattern
         - management for tracing sampling (default to 0.1 or 10%) and endpoint for pushing data (otlp collector)
-    - pom.xml
-        - reactor-core-micrometer (reactor module for interfacing with micrometer)
-        - micrometer-tracing-bridge-otel for otlp tracing implementation
-        - opentelemetry-exporter-otlp for convert micrometer to otlp format
+        - management for traces/metrics destination (otel edge collector)
+
 - Notes
     - For inbound and outbound requests, micrometers when integrated with OTEL automatically handles the creation and propagation of traceId and spanId 
     - Got micrometer with Otel tracing working, and it automatically creates traces/spans for inbound/outbound requests
     - Found out that Reactor Core needs `reactor-core-micrometer` module as well as `reactor-core` module to do tracing
     - [DOCS](https://projectreactor.io/docs/core/release/reference/metrics.html)
-    - Now we can manually add metrics/tracings => GUD
+    - `GrpcTracingConfig.java` is needed for propagating traceId to triton, group all the spans under 1 trace
 
 
-
-        
+  
 
 # Structure
 Consumers will never access the core/impl, only the api objetcs 

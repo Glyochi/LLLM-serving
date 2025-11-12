@@ -21,6 +21,7 @@ import com.glygateway.exception.triton.ValidationException;
 import com.glygateway.service.triton.api.ModelAdapterRegistry;
 
 import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,6 +35,9 @@ public class AgentController {
 
   @Autowired
   private ObservationRegistry observationRegistry;
+
+  @Autowired
+  private MeterRegistry meterRegistry;
 
   @Autowired
   private ModelAdapterRegistry modelRegistry;
@@ -104,11 +108,14 @@ public class AgentController {
     Mono<Map<String, String>> result = Mono.zip(
         adapter.debugApplyChatTemplate(conversation)
             .name("apply-chat-template")
+            .tap(Micrometer.metrics(meterRegistry))
             .tap(Micrometer.observation(observationRegistry)),
         adapter.buildRequest(conversation, inferenceParams)
             .flatMapMany(adapter::stream)
             .reduce((a, b) -> a + b)
-            .name("/complete").tap(Micrometer.observation(observationRegistry)))
+            .name("stream-tokens")
+            .tap(Micrometer.metrics(meterRegistry))
+            .tap(Micrometer.observation(observationRegistry)))
         .map(tuple -> {
 
           Map<String, String> final_result = new HashMap();
@@ -131,10 +138,12 @@ public class AgentController {
 
     return adapter.buildRequest(conversation, inferenceParams)
         .name("apply-template")
+        .tap(Micrometer.metrics(meterRegistry))
         .tap(Micrometer.observation(observationRegistry))
         .flatMapMany(v -> {
           return adapter.stream(v)
-              .name("inference")
+              .name("stream-tokens")
+              .tap(Micrometer.metrics(meterRegistry))
               .tap(Micrometer.observation(observationRegistry));
         });
   }
