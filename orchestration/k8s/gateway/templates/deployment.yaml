@@ -48,13 +48,13 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.imageName }}"
+          image: {{ .Values.image.imageName }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           args:
             - "java"
             - "-jar"
-            - "/app/target/app.jar"
+            - "app.jar"
 
           {{- if .Values.mountedCode.enabled }}
           volumeMounts:

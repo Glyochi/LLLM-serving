@@ -1,0 +1,40 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: glycluster
+  region: us-east-1
+  version: "1.34"
+
+vpc:
+  cidr: 10.0.0.0/16
+
+managedNodeGroups:
+  - name: central-ng
+    instanceType: m7a.large # 2 vCPU 8GB Ram 
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 1
+    labels: 
+      app: central-node-label
+    ssh: 
+      allow: true
+      publicKeyPath: ~/.ssh/gly-eks.pub
+
+  - name: edge-ng
+    #instanceType: g5.xlarge # 4 vCPU 16GB ram GPU A10G 24 GB vram
+    instanceType: g4dn.xlarge # 4 vCPU 16GB ram GPU T4 16 GB vram
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 2
+    labels: 
+      app: inference-node-label
+      accelerator: nvidia
+    taints:
+      - key: nvidia.com/gpu
+        value: "true"
+        effect: NoSchedule 
+    ssh: 
+      allow: true
+      publicKeyPath: ~/.ssh/gly-eks.pub
+

@@ -1,3 +1,6 @@
+#!/bin/bash
+set -euo pipefail
+
 becho () {
   print_str="****** $1 ******"
   echo "$print_str"
@@ -28,13 +31,11 @@ becho "Loading docker images..."
 #minikube image load docker.io/library/busybox:1.31.1 -p "${profile_name}"
 #minikube image load quay.io/prometheus/alertmanager:v0.28.1 -p "${profile_name}"
 #minikube image load quay.io/prometheus/prometheus:v3.7.1 -p "${profile_name}"
-#minikube image load quay.io/prometheus-operator/prometheus-config-reloader:v0.86.1 -p "${profile_name}"
 #docker save --output docker.img \
 #  glygateway:latest \
 #  docker.io/library/busybox:1.31.1 \
 #  quay.io/prometheus/alertmanager:v0.28.1 \
 #  quay.io/prometheus/prometheus:v3.7.1 \
-#  quay.io/prometheus-operator/prometheus-config-reloader:v0.86.1 \
 #  nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
 
 minikube image load docker.img -p "${profile_name}"

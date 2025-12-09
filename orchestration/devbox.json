@@ -1,14 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
-    "kubectl@latest",
     "kubectx@latest",
     "kluctl@latest",
     "k9s@latest",
     "oras@latest",
     "yq@latest",
     "minikube@latest",
-    "kubernetes-helm@latest"
+    "kubernetes-helm@latest",
+    "eksctl@latest",
+    "kubectl@1.34"
   ],
   "shell": {
     "init_hook": [

@@ -1,0 +1,8 @@
+server:
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+    accessModes: ["ReadWriteOnce"]
+    storageClass: ebs-sc 
+
+

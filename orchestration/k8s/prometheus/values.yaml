@@ -6,25 +6,12 @@ server:
     options:
       - name: ndots
         value: "1"
-  persistentVolume:
-    enabled: false 
-    size: 8Gi
   extraArgs:
     log.level: debug
   global:
     scrape_interval: 15s
     evaluation_interval: 15s
 
-  # Have to make this init container to change permission. Not entirely sure why this only happens when running in multiple nodes setup
-  extraInitContainers:
-  - name: volume-permissions
-    image: busybox:1.36
-    command: ["sh","-c","chown -R 65534:65534 /data || true"]
-    securityContext:
-      runAsUser: 0
-    volumeMounts:
-      - name: storage-volume   # name must match the server's data volume in the chart
-        mountPath: /data
   # Allow to run as 65534 for init container
   securityContext:
     runAsNonRoot: false

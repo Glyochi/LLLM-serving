@@ -3,14 +3,6 @@ service:
   type: NodePort      # or LoadBalancer (with `minikube tunnel`) or ClusterIP + port-forward
   port: 80
 
-# Persist Grafana's SQLite DB so UI-created dashboards/users survive pod restarts
-persistence:
-  enabled: true
-  type: pvc
-  size: 5Gi
-  accessModes: ["ReadWriteOnce"]
-  storageClassName: standard  # (minikube default; uncomment if needed)
-
 # Basic auth (dev only—use a Secret in real setups)
 adminUser: admin
 adminPassword: password 
@@ -60,7 +52,3 @@ affinity:
           operator: In
           values: ["central-node-label"]
 
-# Getting some permission issue with /var/lib/grafana, this helps the busybox container get pass that
-initChownData:
-  securityContext:
-    runAsUser: 472 

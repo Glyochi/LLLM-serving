@@ -1,0 +1,7 @@
+# Persist Grafana's SQLite DB so UI-created dashboards/users survive pod restarts
+persistence:
+  enabled: true
+  size: 10Gi
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard  # (minikube default; uncomment if needed)
+

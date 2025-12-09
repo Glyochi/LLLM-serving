@@ -20,10 +20,12 @@ metricsGenerator:
 
 service:
   type: ClusterIP
-ingester:
-  persistence:
-    enabled: true
-    size: 5Gi
+
+# [TODO DELETE?] WHAT IS THIS DOING HERE?
+#ingester:
+#  persistence:
+#    enabled: true
+#    size: 5Gi
 
 # Receive traces via OTLP (so your apps or OTel Collector can send here)
 receivers:

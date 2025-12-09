@@ -1,0 +1,16 @@
+# global:
+#   imageRegistry: NO NEED TO OVERIDE FOR LOCALLY
+
+# Persist Grafana's SQLite DB so UI-created dashboards/users survive pod restarts
+persistence:
+  enabled: true
+  type: pvc
+  size: 5Gi
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard  # (minikube default; uncomment if needed)
+
+# Getting some permission issue with /var/lib/grafana, this helps the busybox container get pass that
+# Only happens for locally for some reason hmmmm
+initChownData:
+  securityContext:
+    runAsUser: 472 

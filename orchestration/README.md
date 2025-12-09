@@ -79,10 +79,16 @@
     - What represents the storage itself
     - Varies vendor to vendor :(
 - `Persistent Volume Claim`
-    - This is the thing being mounted to the `Pod` itself 
-    - Multiple `Pods` can mount the same `Persistent Volume Claim`
-    - What represents the access to the `Persistent Volume`
-    - One to one with `Persistent Volume`
+    - These are requests for storage by application, which consume `Persistent Volume`
+        - What represents the access to the `Persistent Volume`
+        - One to one with `Persistent Volume`
+    - One or Many `Pods` can access one `Persistent Volume Claim` (Depends if the underlying storage support ReadWriteMany mode)
+- `Storage Class`
+    - A way to abstract away underlying `Persistent Volume` details. 
+        - `Storage Class` manage `Persistent Volume` for `Persistent Volume Claim`
+        - `Persistent Volume Claim` will now specify `Storage Class` instead of specific `Persistent Volume`
+        - An example would be abstracting away the `Persistent Volume` for minikube and aws, so our helm templates can just refer to the same `Storage Class`
+    - If we were to use differnt `Persistent Volume Claim`, then when mounting to containers, we will have to polute our templates with dev/prod environment => BAD BAD
 - Probe
     - `Liveness probe`
         - Probe the container at an interval
@@ -290,6 +296,11 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 ## Devbox/Nix
 - Nix is a package manager for reproducible installations (Tho can be used like docker)
 - Devbox is a wrapper around it for newbies like me :(
+- devbox add <package>
+- devbox remove <package>
+- devbox shell
+- refresh
+    
 
 
 ## ECK/ECS/K8s with EC2/Fargate
@@ -353,8 +364,10 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
     - Easily integrated with `ECS`/`EKS`
     - Some CI/CD integration as well which is noice
 
-# How to use minikube to run locally
-- Run `minikube_setup.sh` to setup minikube locally 
+
+# Deployment
+## Minikube setup for testing locally 
+- Run `scripts/local/minikube_setup.sh` to setup minikube locally 
     - It loads a bunch of images locally. But directly loading them to the image cluster everytime sometimes fail for bigger iamges
     - Because of that, we run `docker save` to save multiple images into the same file `docker.img` and load that file instead, which is [more efficient](https://github.com/kubernetes/minikube/issues/17785#issuecomment-1906422218)
         - We only have to do this once. So comment out the export after the first run
@@ -362,9 +375,31 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
     - `minikube mount` doesn't really allow you to target a specific node or all nodes, so you could only mount to the main node which is weird
     - settle for `--mount-string` in the start command, which only allow 1 volume, but does apply accross all nodes
 
-# Deployment
-- Run `scripts/deploy.sh` to deploy locally
-- Run `scripts/ports_forward.sh` to expose the ports locally
+## EKS/AWS cluster setup prepping for services deployment
+- [Tutorial on eksctl](https://www.youtube.com/watch?v=p6xDCz00TxU)
+    - Need aws cli + configure profile
+    - Need eksctl
+    - Need to authenticate with aws
+    - Need to reconfigure kubectl to use aws profile (~/.kube/config to use ~/.aws/credentials)
+    - Run `scripts/aws/eks_setup.sh` to setup aws cluster
+    - ECR image upload for faster deployment quick commands (just so dont have to remember what's being pushed to ecr lol)
+        - `bash all_images.sh | xargs -n 2 sh -c 'bash ecr_setup.sh "$0"'`
+        - `bash all_images.sh | xargs -n 2 sh -c 'bash ecr_push_image.sh "$0" "$1"'`
+        - `bash all_images.sh | xargs -n 2 sh -c 'bash ecr_cleanup.sh "$0"'`
+- Persistent Volumes stuff
+    - EBS volumes
+    - Need CSI (Container Storage Interface) for EBS volumes management
+- Nvidia stuff
+    - Makes sure the `nvidia-device-plugin-daemonset` is running for the inference pod
+        - [FOR LATER] Why is the node without GPU also have the pluging-daemonset running? SUS
+    - When describing the pod, see `nvidia.com/gpu` in resource and have at least 1 device
+- Gateway and otel edge collector needs to add tolerance with `nvidia.com/gpu` taint so they get placed on the GPU nodes.
+
+
+
+## Services deployment
+- Run `scripts/deploy.sh minikube/aws` to deploy locally or on aws
+- If running locally with minikube, run `scripts/local/ports_forward.sh` to expose the ports locally
 - Two types of nodes (Diagram below)
     - `central-node-label`
     - `inference-node-label`
@@ -373,6 +408,13 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
     - Otel edge collector label incoming traces/metrics with according node info
     - Otel Collector labelling + Exporting to Prometheus
         - [Prometheus doesn't current support Otel rich labels](https://community.grafana.com/t/otel-metrics-resources-attributes-gets-dropped-when-exported-to-grafana-cloud/119355)
+        - Using [experiemental features for auto conversion](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/15349#issuecomment-1285609773) 
+- Otel Collector labelling + Exporting to Prometheus
+    - Otel Collector handles
+        - `rich OTLP data` (`resource attributes` + `datapoint attributes`)
+        - filter, relabel, merge `resource attributes` into `datapoint` before exporting 
+    - Prometheus handles 
+        - [only `labels`](https://community.grafana.com/t/otel-metrics-resources-attributes-gets-dropped-when-exported-to-grafana-cloud/119355)
         - Using [experiemental features for auto conversion](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/15349#issuecomment-1285609773) 
 
 # Nodes/Deployment Structure
