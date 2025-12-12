@@ -394,6 +394,32 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
         - [FOR LATER] Why is the node without GPU also have the pluging-daemonset running? SUS
     - When describing the pod, see `nvidia.com/gpu` in resource and have at least 1 device
 - Gateway and otel edge collector needs to add tolerance with `nvidia.com/gpu` taint so they get placed on the GPU nodes.
+- `To ssh to the ec2 instances/nodes`
+    - `run kubectl get nodes -o wide` to get the external IP
+    - `ssh -i ~/.ssh/gly-eks ec2-user@{external ip}` because we generated security pairs at the time of deployment in `eks_setup.sh`
+- To build the `.engines` files for the model on the targetted hardware
+    - Create a pod for building the engines
+    - Use an init container to download the checkpoints/weights from s3
+        - This requires IRSA (IAM Roles for Service Account)
+        - This also requires knowing the OIDC_ID (OpenID Connect Identifier) which is regenerated everytime the cluster is recreated
+        - Because of all the OIDC_ID changes, its best to have a script that use the cli tools to create the IRSA instead of manually creating it
+        - Run `scripts/aws/engines_builder_setup.sh` to set up the IRSA
+            - Note that the IAM role only needed to be created once per acccount, not per cluster deployment
+            - IRSA however needs to be recreated per cluster deployment, but sometimes it dont show up in kubectl but show up in eksctl.
+            So just delete it and recreate it and that should work.
+        - Run `kubectl apply -f k8s/aws/engines-builder.yaml` to spin up the engines-builder pod
+            - It will then automatically download the checkpoints in s3 bucket `gly-llm-checkpoints`. Where its downloading from can be configured in the `engines-bulder.yaml` file
+            - Enginees file creation will be manual, but the `build_script.sh` in the container should be enough (Refer to `inference-server` README.md)
+            - To download the engines file back to local machine `kubectl cp engines-builder:/opt/tritonserver/projects/engines ./engines`
+                - I could also just have aws inside the image
+    - About GPU compatibility
+        - `g4dn.xlarge` has `T4 GPU` and it doesnt support `bfloat16`, and gemma-3 uses `bfloat16`. 
+        We could generate `engines` file with `float32` to cover the range but the performance is going to be worse 
+        (i mean its 1b so should be fine, but idk need more testings)
+        - `g5.xlarge` has `A10G GPU` and it does support `bfloat16` but it costs twice as much. I'm kinda broke so imma go cheap. 
+        
+
+
 
 
 

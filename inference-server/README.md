@@ -30,6 +30,7 @@
 - checkpoints: contains HG face checkpoints, downloaded to be used for building .engine files
 - Dockerfiles: Collection of Dockerfile to build images with dependencies on top of `nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3`.
     - Installing dependencies on top of the base image manually doesn't always work. And have to be redone everytime the container is brought up.
+    - ALSO, it will copy the `build_scripts.sh` to the image so we can use it to build engine files.
     - Just quality of life thing.
 - engines: where all the .engines files should be outputed to 
 - tensorrtllm_backend: git repo of tensorrtllm_backend, which has tensorrt_llm inside
@@ -50,7 +51,10 @@
 
 # Building .engine files
 ## Requirements
-- Custom Docker image built with dependencies installed on it `/tensorrtllm_backend/tensorrt_llm/example/{model_family}/requirements.txt`
+- Custom Docker image built with dependencies installed on it 
+    - `/tensorrtllm_backend/tensorrt_llm/example/{model_family}/requirements.txt`
+    - or `/tensorrtllm_backend/tensorrt_llm/example/models/core/{model_family}/requirements.txt`
+    - depending on the branch
 - Model checkpoint downloaded from huggingface (git clone with lfs). Not the raw one from huggingface-cli
 - Engine files built from that model inside the customer container
     - There's instruction on how to convert hf checkpoint to triton consumalbe (.onnx?) and then convert to .engine files in `Tensorrtllm_backend/tensorrt_llm/examples/{model_family}/README.md`

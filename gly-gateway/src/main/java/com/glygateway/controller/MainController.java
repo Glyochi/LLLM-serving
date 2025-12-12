@@ -1,11 +1,11 @@
 package com.glygateway.controller;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Mono;
 
-@Controller
+@RestController
 public class MainController {
 
     @GetMapping("/")

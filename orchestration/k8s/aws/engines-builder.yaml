@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: engines-builder
+  namespace: default
+spec:
+  restartPolicy: Never
+  serviceAccountName: engines-builder-sa
+
+  # Shared volume for checkpoints and .engine
+  volumes:
+    - name: model-storage
+      emptyDir: {}          # or use a PVC if you want persistence
+
+  # 1) Init container: pull ONNX/weights from S3
+  initContainers:
+    - name: download-model
+      image: amazon/aws-cli:2.15.0   # any recent aws-cli image
+      volumeMounts:
+        - name: model-storage
+          mountPath: /checkpoints
+      env:
+        - name: AWS_REGION
+          value: us-east-1
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          echo "Downloading model from S3..."
+          aws s3 cp --recursive s3://gly-llm-checkpoints/gemma-3-1b-it /checkpoints/gemma-3-1b-it
+          echo "Done."
+
+  # 2) Main container: build TensorRT engine
+  containers:
+    - name: da-builder
+      image: 762853498770.dkr.ecr.us-east-1.amazonaws.com/gemma-3-triton-server 
+      imagePullPolicy: Always
+      command: ["/bin/bash", "-c", "sleep infinity"]   # attach and run manually
+      resources:
+        limits:
+          nvidia.com/gpu: 1
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: model-storage
+          mountPath: /opt/tritonserver/projects/checkpoints
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: app 
+            operator: In
+            values: ["inference-node-label"]

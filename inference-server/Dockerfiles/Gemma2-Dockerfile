@@ -9,3 +9,6 @@ RUN pip3 install --extra-index-url https://pypi.nvidia.com tensorrt-llm
 RUN pip3 install Cmake
 RUN pip3 install -r /requirements.txt
 
+COPY ./scripts/build_script.sh ./build_script.sh
+COPY ./tensorrtllm_backend/ ./projects/tensorrtllm_backend/
+
