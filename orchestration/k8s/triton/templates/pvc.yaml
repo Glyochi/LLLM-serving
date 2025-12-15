@@ -1,13 +1,17 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.pvc.name }}
-  namespace: {{ .Values.pvc.namespace }}
+  name: {{ .Values.storage.pvcName }}
+  namespace: {{ .Values.storage.namespace }}
 spec:
-  accessModes: {{ toJson .Values.pvc.accessModes }}
+  accessModes: {{ toJson .Values.storage.accessModes }}
   resources:
     requests:
-      storage: {{ .Values.pvc.size }}
-  storageClassName: {{ .Values.pvc.storageClassName | quote }}
-  volumeName: {{ .Values.pvc.volumeName }}
-
+      storage: {{ .Values.storage.size }}
+  {{- if .Values.storage.s3.enabled }}
+  storageClassName: {{ .Values.storage.storageClassName | quote }}
+  {{- end }}
+  {{- if .Values.storage.pv.enabled }}
+  # Direct binding pvc to pv so storageClassName just set it to pv name
+  storageClassName: {{ .Values.storage.pv.name | quote }}
+  {{- end }}

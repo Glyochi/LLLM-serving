@@ -112,9 +112,9 @@ Need to configure `config.pbtxt` file in the `model_repository`
             - folder name
             - For example, if i have custom folder called `gemma-gly-preprocessing`, that will be come the model name, and it has to be the same inside config.pbtxt file inside that folder
         - `tensorrt_llm_bls` is in charged of coordinating all these models into a pipeline, so it needs to get the correct model names
-            - You can change the `field tensorrt_llm_model_name` in the config.pbtxt file to point to the correct custom model for inferencing (say `gemma-gly-tensorrt_llm`)
-            - BUT YOU CANNOT change the fields for `preprocessing` and `postprocessing`, they are hardcoded in the mode.py file for `tensorrt_llm_bls`
-                - You could modify the mode.py file to add two new fields in config.pbtxt (Doable)
+            - You can change the `field tensorrt_llm_model_name` in the `config.pbtxt` file to point to the correct custom model for inferencing (say `gemma-gly-tensorrt_llm`)
+            - `BUT YOU CANNOT` change the fields for `preprocessing` and `postprocessing`, they are hardcoded in the mode.py file for `tensorrt_llm_bls`
+                - You could modify the `model.py` file to add two new fields in `config.pbtxt` (Doable)
                 - I went with just swapping out the hardcoded values in the `fill_config.sh` script. 
                     - It's the easier way as I don't have to worry about changing the code and keeping track if my source file model.py is the default one or my modified version
                     - Also its like 5 more lines of code compared to ehhh

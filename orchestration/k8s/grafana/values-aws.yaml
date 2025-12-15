@@ -10,8 +10,8 @@ persistence:
   accessModes: ["ReadWriteOnce"]
   storageClassName: ebs-sc 
 
-# So that we can serve this in the same domain name as the gateway
-grafana.ini:
-  server:
-    root_url: "%(protocol)s://%(domain)s/grafana/"
-    serve_from_sub_path: true
+# # So that we can serve this in the same domain name as the gateway
+# grafana.ini:
+#   server:
+#     root_url: "%(protocol)s://%(domain)s/grafana/"
+#     serve_from_sub_path: true

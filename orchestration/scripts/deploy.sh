@@ -76,7 +76,7 @@ helm upgrade --install gateway ./k8s/gateway \
   -n "$NAMESPACE" \
   -f k8s/gateway/values-$ENV.yaml
 
-if [[ "$ENV" = "$AWS_STR" ]]; then
-  # Setting up ALB ingress for exposing services 
-  kubectl apply -n "$NAMESPACE" -f k8s/aws/alb-ingress.yaml 
-fi
+#if [[ "$ENV" = "$AWS_STR" ]]; then
+#  # Setting up ALB ingress for exposing services 
+#  #kubectl apply -n "$NAMESPACE" -f k8s/aws/alb-ingress.yaml 
+#fi

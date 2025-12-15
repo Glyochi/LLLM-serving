@@ -22,8 +22,8 @@ managedNodeGroups:
       publicKeyPath: ~/.ssh/gly-eks.pub
 
   - name: edge-ng
-    #instanceType: g5.xlarge # 4 vCPU 16GB ram GPU A10G 24 GB vram
-    instanceType: g4dn.xlarge # 4 vCPU 16GB ram GPU T4 16 GB vram
+    instanceType: g5.xlarge # 4 vCPU 16GB ram GPU A10G 24 GB vram
+    #instanceType: g4dn.xlarge # 4 vCPU 16GB ram GPU T4 16 GB vram
     volumeSize: 200   # GB for node root disk
     desiredCapacity: 1
     minSize: 1

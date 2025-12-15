@@ -1,11 +1,14 @@
-FROM gemma-3-triton-server 
-#FROM nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
-#
-#
-#COPY ./tensorrtllm_backend/tensorrt_llm/examples/models/core/gemma/requirements.txt ./requirements.txt
-#COPY ./tensorrtllm_backend/tensorrt_llm/examples/constraints.txt ./constraints.txt
-#
-#RUN pip3 install -r ./requirements.txt -c constraints.txt
-COPY ./scripts/build_script.sh ./build_script.sh
-COPY ./tensorrtllm_backend/ ./projects/tensorrtllm_backend/
+FROM nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        nvtop \
+        python3 \
+        python3-pip \
+        procps \
+        ca-certificates && \
+    # Install awscli using pip
+    pip3 install --no-cache-dir awscli && \
+    # Clean up apt lists to keep the image size down
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

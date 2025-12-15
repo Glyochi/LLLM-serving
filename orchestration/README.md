@@ -73,8 +73,6 @@
         - `Ingress`
             - `Ingress` has a defined hostname and points to a `Service`
             - Has rules on incoming requests
-- `Storage Class`
-    - Teach the cluster how to create certain type of storage and handle it (AWS, Azure, GCP,...)
 - `Persistent Volume`
     - What represents the storage itself
     - Varies vendor to vendor :(
@@ -84,6 +82,7 @@
         - One to one with `Persistent Volume`
     - One or Many `Pods` can access one `Persistent Volume Claim` (Depends if the underlying storage support ReadWriteMany mode)
 - `Storage Class`
+    - Teach the cluster how to create certain type of storage and handle it (AWS, Azure, GCP,...)
     - A way to abstract away underlying `Persistent Volume` details. 
         - `Storage Class` manage `Persistent Volume` for `Persistent Volume Claim`
         - `Persistent Volume Claim` will now specify `Storage Class` instead of specific `Persistent Volume`
@@ -397,13 +396,14 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 - `To ssh to the ec2 instances/nodes`
     - `run kubectl get nodes -o wide` to get the external IP
     - `ssh -i ~/.ssh/gly-eks ec2-user@{external ip}` because we generated security pairs at the time of deployment in `eks_setup.sh`
+    - Wont be able to do much tho the base OS doesnt really have anything
 - To build the `.engines` files for the model on the targetted hardware
     - Create a pod for building the engines
     - Use an init container to download the checkpoints/weights from s3
         - This requires IRSA (IAM Roles for Service Account)
         - This also requires knowing the OIDC_ID (OpenID Connect Identifier) which is regenerated everytime the cluster is recreated
         - Because of all the OIDC_ID changes, its best to have a script that use the cli tools to create the IRSA instead of manually creating it
-        - Run `scripts/aws/engines_builder_setup.sh` to set up the IRSA
+        - Run `scripts/aws/s3_checkpoints_engines_setup.sh` to set up the IRSA
             - Note that the IAM role only needed to be created once per acccount, not per cluster deployment
             - IRSA however needs to be recreated per cluster deployment, but sometimes it dont show up in kubectl but show up in eksctl.
             So just delete it and recreate it and that should work.
@@ -414,9 +414,11 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
                 - I could also just have aws inside the image
     - About GPU compatibility
         - `g4dn.xlarge` has `T4 GPU` and it doesnt support `bfloat16`, and gemma-3 uses `bfloat16`. 
-        We could generate `engines` file with `float32` to cover the range but the performance is going to be worse 
-        (i mean its 1b so should be fine, but idk need more testings)
-        - `g5.xlarge` has `A10G GPU` and it does support `bfloat16` but it costs twice as much. I'm kinda broke so imma go cheap. 
+            - We could generate `engines` file with `float32` to cover the range but the performance is going to be worse 
+            - For some reasons cannot run the benchmark that comes with tensorrtllm and cannot actually do inference when hosted
+            => `NOT USEABLE`
+        - `g5.xlarge` has `A10G GPU` and it does support `bfloat16` but it costs twice as much. 
+            - I'm kinda broke so i would go cheap, but `T4 GPU` dont work so imma use this for now 
         
 
 

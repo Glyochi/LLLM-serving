@@ -22,7 +22,7 @@ minikube start --driver=docker \
   --mount-string="${root_dir}:/mnt/projects" \
   --mount
 becho "Enabling addons..."
-minikube addons enable registry
+minikube addons enable registry -p "${profile_name}"
 becho "Labelling nodes..."
 kubectl label nodes "${profile_name}-m02" app="${central_node_label}"
 kubectl label nodes "${profile_name}-m03" app="${inference_node_label}"
@@ -31,12 +31,13 @@ becho "Loading docker images..."
 #minikube image load docker.io/library/busybox:1.31.1 -p "${profile_name}"
 #minikube image load quay.io/prometheus/alertmanager:v0.28.1 -p "${profile_name}"
 #minikube image load quay.io/prometheus/prometheus:v3.7.1 -p "${profile_name}"
-#docker save --output docker.img \
-#  glygateway:latest \
-#  docker.io/library/busybox:1.31.1 \
-#  quay.io/prometheus/alertmanager:v0.28.1 \
-#  quay.io/prometheus/prometheus:v3.7.1 \
-#  nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
+# docker save --output docker.img \
+#   glygateway:latest \
+#   hosting-llm-image:latest 
+#   # docker.io/library/busybox:1.31.1 \
+#   # quay.io/prometheus/alertmanager:v0.28.1 \
+#   # quay.io/prometheus/prometheus:v3.7.1 \
+#   #nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
 
 minikube image load docker.img -p "${profile_name}"
 

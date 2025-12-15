@@ -1,7 +1,19 @@
 # Persist Grafana's SQLite DB so UI-created dashboards/users survive pod restarts
 persistence:
-  enabled: true
+  enabled: false # Using persistent storage locally with minikube standard is not figured out yet.
+  # I cant add a initContainer or set it in minikube side. The only way I know rn is to set tempo user to root 0
+  # GLY TODO: Will revisit in the future
   size: 10Gi
   accessModes: ["ReadWriteOnce"]
   storageClassName: standard  # (minikube default; uncomment if needed)
 
+tempo:
+  storage:
+    trace:
+      backend: local
+
+securityContext:
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  runAsNonRoot: true

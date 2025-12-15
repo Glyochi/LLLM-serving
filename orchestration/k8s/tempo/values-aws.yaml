@@ -4,3 +4,8 @@ persistence:
   size: 10Gi
   accessModes: ["ReadWriteOnce"]
   storageClassName: ebs-sc 
+
+tempo:
+  storage:
+    trace:
+      backend: s3 # Needs to fill out the rest later 

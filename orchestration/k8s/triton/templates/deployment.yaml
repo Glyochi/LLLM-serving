@@ -47,14 +47,51 @@ spec:
         release: {{ .Release.Name }}
 
     spec:
-      volumes:
-        - name: triton-model-repository
-          persistentVolumeClaim:
-            claimName: {{ .Values.modelRepository.name }}
+      # volumes:
+      #   - name: triton-model-repository
+      #     persistentVolumeClaim:
+      #       claimName: {{ .Values.modelRepository.name }}
+
       dnsConfig:
         options:
           - name: ndots
             value: "1"
+
+      serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+
+      volumes:
+        - name: model-repository
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage.pvcName | quote }}
+
+      {{- if .Values.storage.s3.enabled }}
+      initContainers:
+        - name: download-model-repository 
+          image: amazon/aws-cli:2.15.0
+          env:
+            - name: AWS_REGION
+              value: {{ .Values.storage.s3.region | quote }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Downloading model-repository..."
+              aws s3 sync \
+                s3://{{ .Values.storage.s3.bucket }}/model-repository \
+                /model-repository \
+                --region {{ .Values.storage.s3.region }}
+
+              echo "Downloading engine files..."
+              aws s3 sync \
+              s3://{{ .Values.storage.s3.bucket }}/a10g/gemma-3-1b-it \
+              /model-repository/_assets/gemma-3-1b-it/engines \
+              --region {{ .Values.storage.s3.region }}
+              echo "Done."
+          volumeMounts:
+            - name: model-repository
+              mountPath: /model-repository 
+      {{- end }}
+
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.imageName }}"
@@ -66,7 +103,7 @@ spec:
 
           args: 
             - "tritonserver"
-            - "--model-repository=/opt/tritonserver/projects/model-repository"
+            - "--model-repository={{ .Values.triton.modelRepositoryPath }}"
             - "--log-verbose=1"
             - "--exit-on-error=false"
             - "--trace-config=mode=opentelemetry"
@@ -81,8 +118,8 @@ spec:
               value: /secret/gcp-creds.json
 
           volumeMounts:
-            - name: triton-model-repository
-              mountPath: /opt/tritonserver/projects/model-repository
+            - name: model-repository 
+              mountPath: {{ .Values.triton.modelRepositoryPath }} 
 
           ports:
             - containerPort: 8000

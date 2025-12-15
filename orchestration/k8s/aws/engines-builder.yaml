@@ -2,12 +2,12 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: engines-builder
-  namespace: default
+  namespace: observability 
 spec:
   restartPolicy: Never
-  serviceAccountName: engines-builder-sa
+  serviceAccountName: s3-checkpoints-engines-sa
 
-  # Shared volume for checkpoints and .engine
+  # Shared volume for checkpoints
   volumes:
     - name: model-storage
       emptyDir: {}          # or use a PVC if you want persistence

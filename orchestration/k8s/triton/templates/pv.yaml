@@ -1,13 +1,15 @@
+{{- if .Values.storage.pv.enabled }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Values.pv.name }}
+  name: {{ .Values.storage.pv.name }}
 spec:
   capacity:
-    storage: {{ .Values.pv.size }}
-  accessModes: {{ toJson .Values.pv.accessModes }}
-  storageClassName: {{ .Values.pv.storageClassName | quote }}
-  persistentVolumeReclaimPolicy: {{ .Values.pv.reclaimPolicy }}
+    storage: {{ .Values.storage.size }}
+  accessModes: {{ toJson .Values.storage.accessModes }}
+  persistentVolumeReclaimPolicy: {{ .Values.storage.pv.reclaimPolicy }}
   hostPath:
-    path: {{ .Values.pv.hostPath | quote }}
-
+    path: {{ .Values.storage.pv.hostPath | quote }}
+  # Direct binding pvc to pv so storageClassName just set it to pv name
+  storageClassName: {{ .Values.storage.pv.name }}
+{{- end }}

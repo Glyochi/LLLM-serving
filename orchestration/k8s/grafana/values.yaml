@@ -1,6 +1,6 @@
 # Expose in minikube (pick ONE of these patterns)
 service:
-  type: NodePort      # or LoadBalancer (with `minikube tunnel`) or ClusterIP + port-forward
+  type: roadBalancer      # or LoadBalancer (with `minikube tunnel`) or ClusterIP + port-forward
   port: 80
 
 # Basic auth (dev only—use a Secret in real setups)

@@ -1,2 +1,6 @@
 image:
   imageName: "glygateway:latest"
+  pullPolicy: IfNotPresent 
+
+mountedCode:
+  enabled: True 

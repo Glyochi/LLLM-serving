@@ -1,2 +1,18 @@
 image:
-  imageName: nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
+  imageName: hosting-llm-image:latest
+
+serviceAccount:
+  create: false
+  name: default
+
+storage:
+  s3:
+    enabled: false 
+  pv:
+    enabled: true 
+    name: local-triton-models-pv
+    hostPath: /mnt/projects/inference-server/model-repository 
+    reclaimPolicy: Retain
+
+
+

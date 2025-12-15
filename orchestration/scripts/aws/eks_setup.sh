@@ -7,7 +7,7 @@ cluster_name="glycluster"
 # Create ssh keys for remoting in later
 ssh-keygen -t ed25519 -C "gly-eks" -f ~/.ssh/gly-eks
 
-eksctl create cluster -f eks_cluster.yaml
+eksctl create cluster -f scripts/aws/eks_cluster.yaml
 aws eks update-kubeconfig --name "$cluster_name" --region us-east-1
 
 
@@ -23,9 +23,3 @@ eksctl utils associate-iam-oidc-provider --cluster "$cluster_name" --approve
 eksctl create addon --name aws-ebs-csi-driver \
   --cluster "$cluster_name" \
   --force
-
-
-# THIS IS NOT NEEDED?
-# # By default, K8s only knows cpu, memory, ephemeral-storage and basic resources
-# # This plugin is the NVDIA device plugin so the node can see the GPU
-# kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.16.2/nvidia-device-plugin.yml

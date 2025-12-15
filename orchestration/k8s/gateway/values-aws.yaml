@@ -1,6 +1,7 @@
 image:
   # Use ecr image for faster deployment
   imageName: "762853498770.dkr.ecr.us-east-1.amazonaws.com/glygateway"
+  pullPolicy: IfNotPresent # Always when testing deployment to aws and new gateway version
 
 # Allowed to be scheduled on GPU nodes 
 # to keep cost down i dont want more nodes just for api lol.

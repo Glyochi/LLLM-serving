@@ -5,7 +5,10 @@
       "Sid": "ListBucketForModels",
       "Effect": "Allow",
       "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::gly-llm-checkpoints"
+      "Resource": [
+        "arn:aws:s3:::gly-llm-checkpoints",
+        "arn:aws:s3:::gly-llm-engines"
+      ]
     },
     {
       "Sid": "GetModelObjects",
@@ -14,7 +17,10 @@
         "s3:GetObject",
         "s3:PutObject"
       ],
-      "Resource": "arn:aws:s3:::gly-llm-checkpoints/*"
+      "Resource": [
+        "arn:aws:s3:::gly-llm-checkpoints/*",
+        "arn:aws:s3:::gly-llm-engines/*"
+      ]
     }
   ]
 }

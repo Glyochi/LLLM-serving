@@ -7,11 +7,11 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  # This sets the pull policy for images. Set to always to make sure use the newest image if same tag
-  pullPolicy: Always
+  # This sets the pull policy for images. Set to always to make sure use the newest image if same ta
+  pullPolicy: IfNotPresent 
 
 mountedCode:
-  enabled: True
+  enabled: False 
   name: mounted-code-pvc
 
   # Mounted volume for development 

@@ -4,28 +4,15 @@ tempo:
   storage:
     trace:
       backend: local
-      wal:
-        path: /var/tempo/wal
-      local:
-        path: /var/tempo/blocks
 
 metricsGenerator:
   enabled: true
   remoteWriteUrl: "http://prometheus-server.observability.svc.cluster.local:9090/api/v1/write"   
 
-  # # Label customizations (optional)
-  # externalLabels:
-  #   cluster: "minikube"
-  #   source: "tempo"
 
 service:
   type: ClusterIP
 
-# [TODO DELETE?] WHAT IS THIS DOING HERE?
-#ingester:
-#  persistence:
-#    enabled: true
-#    size: 5Gi
 
 # Receive traces via OTLP (so your apps or OTel Collector can send here)
 receivers:

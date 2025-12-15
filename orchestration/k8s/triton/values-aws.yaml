@@ -1,2 +1,17 @@
 image:
-  imageName: 762853498770.dkr.ecr.us-east-1.amazonaws.com/nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
+  imageName: 762853498770.dkr.ecr.us-east-1.amazonaws.com/hosting-llm-image:latest
+
+serviceAccount:
+  create: false
+  name: s3-checkpoints-engines-sa
+
+storage:
+  s3:
+    enabled: true 
+    bucket: gly-llm-engines
+    region: us-east-1
+    nodeGPU: t4
+    storageClassName: ebs-sc
+  pv:
+    enabled: false
+

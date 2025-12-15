@@ -4,4 +4,5 @@
 # echo "quay.io/prometheus/alertmanager" "v0.28.1"
 # echo "quay.io/prometheus/prometheus" "v3.7.1"
 # echo "nvcr.io/nvidia/tritonserver" "25.06-trtllm-python-py3"
-echo "gemma-3-triton-server" "latest"
+#echo "gemma-3-triton-server" "latest"
+echo "hosting-llm-image" "latest"

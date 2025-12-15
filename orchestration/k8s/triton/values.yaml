@@ -33,24 +33,55 @@ image:
 service:
   type: ClusterIP
 
-pv:
-  name: local-triton-models-pv
+storage:
+  pvcName: triton-models-pvc
   size: 100Gi
-  hostPath: /mnt/projects/inference-server/model-repository
-  storageClassName: ""     # empty => 'no storage class'
   accessModes: ["ReadWriteOnce"]
-  reclaimPolicy: Retain     # change to Delete if you want Helm uninstall to remove data
+  namespace: observability
+  s3:
+    enabled: false 
+    bucket: gly-llm-engines
+    region: us-east-1
+    nodeGPU: t4
+    storageClassName: ebs-sc
+  pv:
+    enabled: false
+    name: local-triton-models-pv
+    hostPath: /mnt/projects/inference-server/model-repository 
+    reclaimPolicy: Retain
 
-pvc:
-  name: triton-models-pvc
-  namespace: observability  # where Triton runs
-  size: 100Gi
-  storageClassName: ""      # must match PV
-  accessModes: ["ReadWriteOnce"]
-  volumeName: local-triton-models-pv
 
-modelRepository:
-  name: triton-models-pvc
+serviceAccount:
+  create: false
+  name: "" 
+
+triton:
+  modelRepositoryPath: "/opt/tritonserver/projects/model-repository"
 
 opentelemetry: 
   url: "http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/traces"
+
+
+
+
+
+
+# pv:
+#   name: local-triton-models-pv
+#   size: 100Gi
+#   hostPath: /mnt/projects/inference-server/model-repository
+#   storageClassName: "ebs-sc"     # empty => 'no storage class'
+#   accessModes: ["ReadWriteOnce"]
+#   reclaimPolicy: Retain     # change to Delete if you want Helm uninstall to remove data
+# 
+# pvc:
+#   name: triton-models-pvc
+#   namespace: observability  # where Triton runs
+#   size: 100Gi
+#   storageClassName: "ebs-sc"
+#   accessModes: ["ReadWriteOnce"]
+#   volumeName: local-triton-models-pv
+# 
+# modelRepository:
+#   name: triton-models-pvc
+# 
