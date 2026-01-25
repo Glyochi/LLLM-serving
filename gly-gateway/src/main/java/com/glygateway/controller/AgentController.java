@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +33,7 @@ import reactor.core.scheduler.Schedulers;
 @RestController
 @RequestMapping("/agent")
 @Validated
+@CrossOrigin(origins = "http://glyml:5173")
 public class AgentController {
 
   @Autowired
@@ -129,8 +132,8 @@ public class AgentController {
 
   }
 
-  @PostMapping(value = "/stream-complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public Flux<String> streamComplete(@Valid @RequestBody ChatRequest request)
+  @PostMapping(value = "/stream-complete", produces = MediaType.APPLICATION_NDJSON_VALUE)
+  public Flux<Map<String, String>> streamComplete2(@Valid @RequestBody ChatRequest request)
       throws ValidationException, InferenceFailedException {
     var conversation = request.conversation();
     var inferenceParams = request.inferenceParams();
@@ -145,7 +148,7 @@ public class AgentController {
               .name("stream-tokens")
               .tap(Micrometer.metrics(meterRegistry))
               .tap(Micrometer.observation(observationRegistry));
-        });
+        }).map(token -> Map.of("content", token));
   }
 
 }

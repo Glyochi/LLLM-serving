@@ -454,6 +454,16 @@ The upstream calls are either unaffected (subscribe) or stopped from cascading (
 # Model config
 - Loaded from application.yml
 
+# Streaming
+- Example: `https://youtu.be/l6c0H51fIRQ`
+- `SSE - Server Side Event` 
+    - More descriptive, browser natively support
+    - However, old spring version might remove leading spaces (as mentioned in the upper video), which affect final model response
+        - `https://github.com/spring-projects/spring-framework/issues/27473`
+    => Not using this
+- `NDJSON - Newline-delimited JSON`
+    - Stream inlined jsons
+    - Each json seperated by new line
 
 # Error Handling
 - Goal is [RFC 9457 compliant](https://www.rfc-editor.org/rfc/rfc9457.html#name-json-schema-for-http-proble)
