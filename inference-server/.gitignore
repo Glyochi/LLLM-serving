@@ -1,4 +1,6 @@
 tensorrtllm_backend
+model_analyzer
 checkpoints/*
 engines/*
 model-repository/*
+perf_results/*

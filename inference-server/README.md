@@ -10,6 +10,9 @@
 - base image `nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3`
     - tensorrt version `10.10.0.31`
     - tensorrt_llm version `0.20.0`
+    - For hosting the triton server itself
+- development image `nvcr.io/nvidia/tritonserver:25.06-py3-sdk`
+    - Should have everything needed for benchmarking (`perf_analyzer`) and debugging
 - Cloned repos of tensorrtllm_backend and tensorrt_llm (should be a folder in tensorrtllm_backend)
     - We only need the repos for the scripts, not the run environments
     - tensorrtllm_backend (latest, doesnt seem to matter that much) `https://github.com/triton-inference-server/tensorrtllm_backend`
@@ -234,4 +237,30 @@ Need to configure `config.pbtxt` file in the `model_repository`
         - Each existing as 1 instance. And for single gpu 1 instance is good enough. Should use batching or in-flight/continous batching to increase throughput
     - 
 
-# GEN AI for benchmarking
+# genai-perf for benchmarking
+- [Conceptual guide](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide)
+    - Part 2
+        - [Use genai-perf instead of perf_analyzer](https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton-inference-server-2520/user-guide/docs/perf_analyzer/genai-perf/docs/tutorial.html)
+            - `genai-perf` use the model tokenizer to generate test inputs so 
+            thats much more convenient that manually specifying with `perf_analyzer`
+        - `Gemma 3 1b it` Engine file with `batch size 4`. Tried with `instance_group of 1,2,3` and
+        `dynamic batching with 0ms and 100ms delay`. 
+        => No noticeable differences.
+    - Part 3
+        - [Model analyzer](https://github.com/triton-inference-server/model_analyzer/blob/main/docs/install.md#specific-version-with-local-launch-mode)
+            - Build a docker image with based `25.06`
+            - TODO: built image is only compatible with `575` driver, i have `570`. Need to update nvidia drivers
+        
+
+- Benchmark
+    - Start dev container using `start_development_triton_container_env.sh`
+    - Make sure the Triton server hosting the model is up and running, and endpoint 8001 and 8002 are reachable
+    - Run `scripts/start_perf_analysis.sh` (after updating the endpoints of course)
+    - Performance log will be dumped in folder `perf_results` that was mounted in the dev container
+- Optimization
+    - KV_CACHE_FREE_GPU_MEM_FRACTION: x% (How much % memory is used for KV cache `after` the model is loaded)
+        - Recommended 0.85 or 0.9
+        - Say have 40gb vram, model is 20gb, then 0.5 would be 10gb of KV cache
+
+
+

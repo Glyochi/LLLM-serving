@@ -59,7 +59,7 @@ TOOL_PATH="$BASE_PATH/tensorrtllm_backend/tensorrt_llm/triton_backend"
 FILL_TEMPLATE_SCRIPT="${TOOL_PATH}/tools/fill_template.py"
 DECOUPLED_MODE=true
 LOGITS_DATATYPE=TYPE_FP32
-KV_CACHE_FREE_GPU_MEM_FRACTION=0.49
+KV_CACHE_FREE_GPU_MEM_FRACTION=0.85
 
 
 mkdir -p $MODEL_FOLDER/${MODEL_NAME}_preprocessing
