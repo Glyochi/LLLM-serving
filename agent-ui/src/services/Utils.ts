@@ -95,4 +95,48 @@ function getPromptWithGlobalSettings(client: QueryClient, conversation: Conversa
   return prompt;
 }
 
-export { consumeNdjsonResponse, getPromptWithGlobalSettings };
+function getRandomConversation() {
+  const randomConversationsArray: Array<Conversation> = [
+    {
+      contents: [
+        {
+          role: "SYSTEM",
+          content: "You are a helpful assistant",
+        },
+        {
+          role: "USER",
+          content: "Tell me about antartica",
+        },
+      ],
+    },
+    {
+      contents: [
+        {
+          role: "SYSTEM",
+          content: "You are a helpful assistant",
+        },
+        {
+          role: "USER",
+          content: "Tell me about viet nam",
+        },
+      ],
+    },
+    {
+      contents: [
+        {
+          role: "SYSTEM",
+          content: "You are a helpful assistant",
+        },
+        {
+          role: "USER",
+          content: "Tell me about the sunrise phenomanon",
+        },
+      ],
+    },
+  ];
+
+  const randomIndex = Math.floor(Math.random() * (randomConversationsArray.length + 1));
+  return randomConversationsArray[randomIndex];
+}
+
+export { consumeNdjsonResponse, getPromptWithGlobalSettings, getRandomConversation };

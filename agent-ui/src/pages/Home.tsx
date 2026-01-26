@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ChatBox from "../components/ui/ChatBox";
-import GlygatewayAgentService from "../services/GlygatewayAgentService";
+import glygatewayAgentService from "../services/GlygatewayAgentService";
 import { useRef, useState } from "react";
 import { consumeNdjsonResponse, getPromptWithGlobalSettings } from "../services/Utils";
 import type { StreamTokenEvent } from "../models/NdjsonTypes";
 import type { Message, Prompt } from "../models/PromptTypes";
 import ConversationBox from "../components/ui/ConversationBox";
+import StressBox from "../components/ui/StressBox";
 
 function Home() {
   const client = useQueryClient();
@@ -22,7 +23,7 @@ function Home() {
   const mutation = useMutation({
     mutationFn: async (prompt: Prompt) => {
       return consumeNdjsonResponse(
-        await GlygatewayAgentService.streamComplete(prompt),
+        await glygatewayAgentService.streamComplete(prompt),
         (v: StreamTokenEvent) => {
           // Stream token response
           responseStringRef.current += v.content;
@@ -63,23 +64,31 @@ function Home() {
   };
 
   return (
-    <div className="w-[60%] h-1/2 m-auto flex flex-col">
-      <div className="w-full flex">
-        <ConversationBox conversationHistory={conversation} streamingMessage={responseString} />
+    <div className="w-full m-auto flex">
+      <div className="flex-1"></div>
+
+      <div className="flex-3 h-1/2 m-auto flex flex-col">
+        <div className="w-full flex">
+          <ConversationBox conversationHistory={conversation} streamingMessage={responseString} />
+        </div>
+
+        <div className="fixed bottom-5 left-0 right-0 w-full h-30 flex">
+          <div className="flex m-auto w-[40%] max-h-[80%]">
+            <ChatBox
+              currentMessage={chatMessage}
+              setMessage={(message) => {
+                setChatMessage(message);
+                chatMessageRef.current = message;
+                return;
+              }}
+              handleSubmit={handleSubmit}
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="fixed bottom-5 left-0 right-0 w-full h-30 flex">
-        <div className="flex m-auto w-[40%] max-h-[80%]">
-          <ChatBox
-            currentMessage={chatMessage}
-            setMessage={(message) => {
-              setChatMessage(message);
-              chatMessageRef.current = message;
-              return;
-            }}
-            handleSubmit={handleSubmit}
-          />
-        </div>
+      <div className="flex-1">
+        <StressBox />
       </div>
     </div>
   );

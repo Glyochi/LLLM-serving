@@ -8,30 +8,8 @@ class GlygatewayAgentService extends GlygatewayBaseService {
   }
 
   async streamComplete(prompt: Prompt) {
-    var path = url_paths.GlygatewayAgentService.streamComplete2;
+    var path = url_paths.GlygatewayAgentService.streamComplete;
     var url = this.url + path;
-    var data = {
-      conversation: {
-        contents: [
-          {
-            role: "SYSTEM",
-            content: "You are a helpful assistant.",
-          },
-          {
-            role: "USER",
-            content: "Explain quantum computing in simple terms.",
-          },
-        ],
-      },
-      inferenceParams: {
-        modelId: "gemma-3-1b-it_tensorrt_llm_bls",
-        maxTokens: 100,
-        temperature: 1.0,
-        seed: 809357414,
-        topP: 0.9,
-        stream: true,
-      },
-    };
 
     const response = await fetch(url, {
       method: "POST",

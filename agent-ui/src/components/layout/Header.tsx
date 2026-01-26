@@ -3,7 +3,7 @@ import { Modal } from "../ui/Modal";
 import { Settings } from "../ui/Settings";
 
 export default function Header() {
-  const [showSettings, setShowSettings] = useState<boolean>(true);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   return (
     <header className="flex items-center justify-between bg-bg text-white px-4 py-3 shadow">
