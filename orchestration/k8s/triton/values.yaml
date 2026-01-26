@@ -62,6 +62,14 @@ opentelemetry:
   url: "http://otel-edge-opentelemetry-collector.observability.svc.cluster.local:4318/v1/traces"
 
 
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: app 
+          operator: In
+          values: ["inference-node-label"]
 
 
 
