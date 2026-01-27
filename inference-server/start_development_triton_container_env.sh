@@ -15,5 +15,5 @@ docker run --rm -it \
     -v $build_script_path:$home_path/scripts \
     -v $model_repo:$home_path/model-repository \
     -v $perf_results_path:$home_path/artifacts \
-    nvcr.io/nvidia/tritonserver:25.06-py3-sdk \
+    nvcr.io/nvidia/tritonserver:25.06-py3-sdk
 

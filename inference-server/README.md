@@ -72,6 +72,13 @@
 - Follow the README.md but need to modify convert_checkpoint.py, bug in GemmaConfig.from_hugging_face (quant_config somehow mistook as mapping python wth)
 - Fit noicely on 4090
 
+## Alternatively, use [Triton CLI](https://github.com/triton-inference-server/triton_cli)
+- Seems relatively new
+- Only got it to work with hf, not the downloaded checkpoints
+- `TODO:` Dont really know what paramaters it used to generate the .engine files with (batch size, precision,...)
+- Final structure is the same
+=> Pass for now
+
 # Setting up model-repository for Triton 
 [YOU HAVE TO MAINTAIN THE STRUCTURE YOURSELF AND MOVE THE TOKENIZER/ENGINE FILES TO WHERE THEY SUPPOSED TO BE]
 Need to configure `config.pbtxt` file in the `model_repository` 
@@ -235,21 +242,32 @@ Need to configure `config.pbtxt` file in the `model_repository`
             - postprocessing (CPU)
             - tensorrt_llm_bls or ensemble (CPU)
         - Each existing as 1 instance. And for single gpu 1 instance is good enough. Should use batching or in-flight/continous batching to increase throughput
-    - 
+
+# Example of custom model logic YOOO?
+- [Single model example](https://github.com/triton-inference-server/model_analyzer/blob/main/docs/quick_start.md#step-1-download-the-add_sub-model)
 
 # genai-perf for benchmarking
 - [Conceptual guide](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide)
-    - Part 2
+    - [Part 2](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide/Part_2-improving_resource_utilization)
         - [Use genai-perf instead of perf_analyzer](https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton-inference-server-2520/user-guide/docs/perf_analyzer/genai-perf/docs/tutorial.html)
             - `genai-perf` use the model tokenizer to generate test inputs so 
             thats much more convenient that manually specifying with `perf_analyzer`
         - `Gemma 3 1b it` Engine file with `batch size 4`. Tried with `instance_group of 1,2,3` and
         `dynamic batching with 0ms and 100ms delay`. 
         => No noticeable differences.
-    - Part 3
+    - [Part 3](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide/Part_3-optimizing_triton_configuration)
         - [Model analyzer](https://github.com/triton-inference-server/model_analyzer/blob/main/docs/install.md#specific-version-with-local-launch-mode)
-            - Build a docker image with based `25.06`
-            - TODO: built image is only compatible with `575` driver, i have `570`. Need to update nvidia drivers
+            - Clone the repo, checkout to branch `r25.06`
+            - Build a docker image with based `25.06`, need to modify the Dockerfile
+            - Dockerfile doesn't install `genai-perf`, add `pip install genai-perf` in there
+            - [Yaml Config](https://github.com/triton-inference-server/model_analyzer/blob/main/docs/config.md#model-config-parameters)
+            - [genai-perf and model_analyzer version mismatch](https://github.com/triton-inference-server/model_analyzer/issues/935)
+                - This is still exists in `r25.06` in model_analyzer. Apparently its fixed in newer version
+                - For now just add the `profile` flag in the command line manually
+            - `Debug`
+                - Each run, it dumps the log to `perf_analyzer_error.log`
+            - `WIP`: `model_analyzer` is running with `genai-perf`, but the container spun
+            up by `model_analyer` isn't loading the model-repository correctly. Look into this.
         
 
 - Benchmark
