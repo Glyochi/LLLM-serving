@@ -15,5 +15,8 @@ docker run -it --rm --gpus all \
     -v $build_script_path:$home_path/scripts \
     -v $model_repository_path:$model_repository_path \
     -v $output_path:$output_path \
-    --net=host model_analyzer_test
+    --net=host \
+    model-analyzer:r25.06
+    #model-analyzer
+
 

@@ -249,9 +249,12 @@ Need to configure `config.pbtxt` file in the `model_repository`
 # genai-perf for benchmarking
 - [Conceptual guide](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide)
     - [Part 2](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide/Part_2-improving_resource_utilization)
-        - [Use genai-perf instead of perf_analyzer](https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton-inference-server-2520/user-guide/docs/perf_analyzer/genai-perf/docs/tutorial.html)
+        - [genai-perf](https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton-inference-server-2520/user-guide/docs/perf_analyzer/genai-perf/docs/tutorial.html)
+        - [perf_analyzer](https://github.com/triton-inference-server/perf_analyzer/blob/main/docs/cli.md#perf-analyzer-cli)
+        - `Use genai-perf instead of perf_analyzer`
             - `genai-perf` use the model tokenizer to generate test inputs so 
             thats much more convenient that manually specifying with `perf_analyzer`
+            - Tho still need to learn `perf_analyzer` because `genai-perf` uses that under the hood
         - `Gemma 3 1b it` Engine file with `batch size 4`. Tried with `instance_group of 1,2,3` and
         `dynamic batching with 0ms and 100ms delay`. 
         => No noticeable differences.
@@ -284,6 +287,63 @@ Need to configure `config.pbtxt` file in the `model_repository`
                 - This led to `triton` "fails to load some models" on startup because i have `none-model folder (_assets)` in the `model_analyzer_model_repository`
                     - TODO: at some point, but `_assets` folder outside model-repository and mount it independently
                     - For now, add `--exit-on-error=False` flag. The error isn't critical but need to be addressed
+            - `model_analyzer` generates `genai-perf` commands, which has passthrough --flags for `perf_analyzer` commands 
+                - Checkout [`perf_analyzer` repo](https://github.com/triton-inference-server/perf_analyzer/tree/main) for more information
+                - This `genai-perf` command 
+                ```
+                    genai-perf \
+                      profile \
+                      -m $MODEL_NAME \
+                      --backend tensorrtllm \
+                      --streaming \
+                      --tokenizer $tokenizer_path \
+                      -- \
+                      -b 1 \
+                      -u localhost:8001 \
+                      -i grpc \
+                      -f gemma-3-1b-it_tensorrt_llm_bls-results.csv \
+                      --verbose-csv \
+                      --concurrency-range 1 \
+                      --measurement-mode count_windows \
+                      --collect-metrics \
+                      --metrics-url http://localhost:8002/metrics \
+                      --metrics-interval 1000
+                ```
+                - Would generate this `perf_analyzer` command
+                ```
+                    perf_analyzer \
+                      -m $MODEL_NAME \
+                      --async \
+                      --stability-percentage 999 \
+                      --request-count 10 \
+                      -i grpc \
+                      --streaming \
+                      --shape max_tokens:1 \
+                      --shape text_input:1 \
+                      -u localhost:8001 \
+                      --concurrency-range 1 \
+                      --service-kind triton \
+                      -b 1 \
+                      -u localhost:8001 \
+                      -i grpc \
+                      -f gemma-3-1b-it_tensorrt_llm_bls-results.csv \
+                      --verbose-csv \
+                      --concurrency-range 1 \
+                      --measurement-mode count_windows \
+                      --collect-metrics \
+                      --metrics-url http://localhost:8002/metrics \
+                      --metrics-interval 1000 \
+                      --input-data /workspace/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/inputs.json \
+                      --profile-export-file /workspace/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/profile_export.json
+                ```
+                - HOWEVER, there seems to a duplicated flag `--concurrency-range 1` in `perf_analyzer`
+                - Locally running these two commands, would give the same `perf_analyzer` error  
+                ```Error: Cannot use both Concurrency and Concurrency inference load modes.```
+                    - ALSO, this error message was meant for [a different reason](https://github.com/triton-inference-server/server/issues/6853#issuecomment-1924188257)
+                    - Good read about why `concurrency` and `request rate` cannot be enabled together
+                - Removing that duplicated `--concurrency-range 1` in either `perf_analyzer` or `genai-perf (passthrough)` would help fix this
+
+
 
         
 
