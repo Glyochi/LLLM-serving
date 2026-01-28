@@ -1,4 +1,4 @@
-model_repository: /home/gly/projects/netflix/inference-server/checkpoints/gemma-3-1b-it-engine-from-triton-cli/models
+model_repository: /home/gly/projects/netflix/inference-server/model_analyzer_model_repository
 output_model_repository_path: /home/gly/projects/netflix/inference-server/model_analyzer_results/output
 override_output_model_repository: true
 
@@ -7,14 +7,19 @@ client_protocol: grpc
 
 triton_launch_mode: docker
 triton_docker_image: nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
+triton_server_flags:
+  log_verbose: true
+  exit_on_error: false
+  load_model: "*"
 
 
 genai_perf_flags:
+  tokenizer: /home/gly/projects/netflix/inference-server/model_analyzer_model_repository/_assets/gemma-3-1b-it/tokenizer
   backend: tensorrtllm 
   streaming: true
 
 
 profile_models:
-  - gemma-3-1b-it
+  - gemma-3-1b-it_tensorrt_llm_bls
 
 

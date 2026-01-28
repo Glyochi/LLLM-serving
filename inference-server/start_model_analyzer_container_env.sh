@@ -3,7 +3,7 @@ build_script_path="$base_path/scripts"
 model_checkpoints_path="$base_path/checkpoints"
 output_path="$base_path/model_analyzer_results"
 
-model_checkpoints_path="$base_path/checkpoints/gemma-3-1b-it-engine-from-triton-cli"
+model_repository_path="$base_path/model_analyzer_model_repository"
 
 home_path="/opt/triton-model-analyzer"
 
@@ -13,7 +13,7 @@ home_path="/opt/triton-model-analyzer"
 docker run -it --rm --gpus all \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $build_script_path:$home_path/scripts \
-    -v $model_checkpoints_path:$model_checkpoints_path \
+    -v $model_repository_path:$model_repository_path \
     -v $output_path:$output_path \
-    --net=host model-analyzer
+    --net=host model_analyzer_test
 
