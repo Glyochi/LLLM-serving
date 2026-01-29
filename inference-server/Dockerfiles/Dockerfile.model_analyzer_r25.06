@@ -1,0 +1,128 @@
+# Copyright (c) 2020-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+ARG BASE_IMAGE=nvcr.io/nvidia/tritonserver:25.06-py3
+ARG TRITONSDK_BASE_IMAGE=nvcr.io/nvidia/tritonserver:25.06-py3-sdk
+
+ARG MODEL_ANALYZER_VERSION=1.48.0dev
+ARG MODEL_ANALYZER_CONTAINER_VERSION=25.01dev
+FROM ${TRITONSDK_BASE_IMAGE} as sdk
+
+FROM $BASE_IMAGE
+ARG MODEL_ANALYZER_VERSION
+ARG MODEL_ANALYZER_CONTAINER_VERSION
+ARG BASE_IMAGE
+ARG TRITONSDK_BASE_IMAGE
+
+# DCGM version to install for Model Analyzer
+ENV DCGM_VERSION=3.3.6
+
+# Ensure apt-get won't prompt for selecting options
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y python3-dev
+
+RUN mkdir -p /opt/triton-model-analyzer
+
+# Install architecture-specific components
+    # Install DCGM
+
+RUN [ "$(uname -m)" != "x86_64" ] && arch="sbsa" || arch="x86_64" && \
+    curl -o /tmp/cuda-keyring.deb \
+    https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/$arch/cuda-keyring_1.1-1_all.deb && \
+    apt-get install /tmp/cuda-keyring.deb && rm /tmp/cuda-keyring.deb && \
+    apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
+    apt-get install -y datacenter-gpu-manager=1:${DCGM_VERSION};
+
+    # Install Docker
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+   apt-get update && apt-get install -y docker-ce-cli
+
+# Install tritonclient
+COPY --from=sdk /workspace/install/python /tmp/tritonclient
+RUN find /tmp/tritonclient -maxdepth 1 -type f -name \
+    "tritonclient-*-manylinux*.whl" | xargs printf -- '%s[all]' | \
+    xargs pip3 install --upgrade && rm -rf /tmp/tritonclient/
+
+WORKDIR /opt/triton-model-analyzer
+RUN rm -fr *
+
+
+
+RUN apt update 
+RUN apt install -y build-essential libtool autoconf unzip wget g++ git libssl-dev nvidia-cuda-toolkit rapidjson-dev zlib1g-dev
+ARG CMAKE_VERSION=3.31
+ARG CMAKE_BUILD=11
+RUN wget https://cmake.org/files/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.${CMAKE_BUILD}.tar.gz && \
+  tar -xzvf cmake-${CMAKE_VERSION}.${CMAKE_BUILD}.tar.gz && \
+  cd cmake-${CMAKE_VERSION}.${CMAKE_BUILD}/ && \
+  ./bootstrap && \
+  make -j$(nproc) && \
+  make install
+
+
+RUN apt install -y wkhtmltopdf
+
+
+COPY . .
+RUN chmod +x /opt/triton-model-analyzer/nvidia_entrypoint.sh
+
+# Other pip packages
+RUN python3 -m pip install nvidia-pyindex \
+  coverage \
+  mypy \
+  types-PyYAML \
+  types-requests \
+  types-protobuf \
+  mkdocs \
+  mkdocs-htmlproofer-plugin==0.10.3 \
+  yapf==0.32.0
+
+
+
+
+
+# INSTALL perf_analyzer and genai-perf
+RUN git clone https://github.com/triton-inference-server/perf_analyzer.git && \
+  cd perf_analyzer && \
+  git checkout r25.06
+
+WORKDIR /opt/triton-model-analyzer
+RUN mkdir perf_analyzer/build && \ 
+  cmake -B perf_analyzer/build -S perf_analyzer && \
+  cmake --build perf_analyzer/build -- -j8 VERBOSE=1 && \
+  export PATH=$(pwd)/perf_analyzer/build/perf_analyzer/src/perf-analyzer-build:$PATH
+
+
+WORKDIR /opt/triton-model-analyzer/perf_analyzer
+RUN python3 -m pip install -e genai-perf
+
+WORKDIR /opt/triton-model-analyzer
+RUN chmod +x build_wheel.sh && \
+  ./build_wheel.sh $(which perf_analyzer) true
+RUN python3 -m pip install wheels/triton_model_analyzer-*-manylinux*.whl
+
+WORKDIR /opt/triton-model-analyzer
+
+ENTRYPOINT ["/opt/triton-model-analyzer/nvidia_entrypoint.sh"]
+ENV MODEL_ANALYZER_VERSION ${MODEL_ANALYZER_VERSION}
+ENV MODEL_ANALYZER_CONTAINER_VERSION ${MODEL_ANALYZER_CONTAINER_VERSION}
+ENV TRITON_SERVER_SDK_CONTAINER_IMAGE_NAME ${TRITONSDK_BASE_IMAGE}
+ENV TRITON_SERVER_CONTAINER_IMAGE_NAME ${BASE_IMAGE}
+

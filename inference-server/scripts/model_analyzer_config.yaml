@@ -1,9 +1,7 @@
+# Spin up docker tritonserver
 model_repository: /home/gly/projects/netflix/inference-server/model_analyzer_model_repository
 output_model_repository_path: /home/gly/projects/netflix/inference-server/model_analyzer_results/output
 override_output_model_repository: true
-
-model_type: LLM
-client_protocol: grpc
 
 triton_launch_mode: docker
 triton_docker_image: nvcr.io/nvidia/tritonserver:25.06-trtllm-python-py3
@@ -12,15 +10,47 @@ triton_server_flags:
   exit_on_error: false
   load_model: "*"
 
+# Generate prompts and benchmark 
+model_type: LLM
+client_protocol: grpc
 
-  
 genai_perf_flags:
   tokenizer: /home/gly/projects/netflix/inference-server/model_analyzer_model_repository/_assets/gemma-3-1b-it/tokenizer
   backend: tensorrtllm 
   streaming: true
 
+perf_analyzer_flags:
+  measurement-mode: time_windows 
+  measurement-request-count: 50
+  verbose: true
 
+
+
+# Config Sweeping
+# Quick search
+run_config_search_mode: quick
+# run_config_search_min_concurrency: 1
+# run_config_search_max_concurrency: 256
+request_rate_search_enable: true
+run_config_search_min_request_rate: 16
+run_config_search_max_request_rate: 526 
+run_config_search_min_model_batch_size: 1
+run_config_search_max_model_batch_size: 256
+run_config_search_min_instance_count: 1
+run_config_search_max_instance_count: 256
 profile_models:
   - gemma-3-1b-it_tensorrt_llm_bls
+
+# Brute search
+# profile_models:
+#   gemma-3-1b-it_tensorrt_llm_bls:
+#     model_config_parameters:
+#       max_batch_size: [8]
+#       instance_group:
+#         - kind: KIND_GPU
+#           count: [4]
+#     parameters:
+#       concurrency: 2
+
 
 

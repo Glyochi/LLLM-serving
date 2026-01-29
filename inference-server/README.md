@@ -246,7 +246,7 @@ Need to configure `config.pbtxt` file in the `model_repository`
 # Example of custom triton model logic YOOO?
 - [Single model example](https://github.com/triton-inference-server/model_analyzer/blob/main/docs/quick_start.md#step-1-download-the-add_sub-model)
 
-# genai-perf for benchmarking
+# model_analyzer + perf_analyzer/genai-perf for benchmarking
 - [Conceptual guide](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide)
     - [Part 2](https://github.com/triton-inference-server/tutorials/tree/main/Conceptual_Guide/Part_2-improving_resource_utilization)
         - [genai-perf](https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton-inference-server-2520/user-guide/docs/perf_analyzer/genai-perf/docs/tutorial.html)
@@ -272,6 +272,10 @@ Need to configure `config.pbtxt` file in the `model_repository`
                     - If not, it will try to look for the model on HF 
             - `Debug`
                 - Each run, it dumps the log to `perf_analyzer_error.log`
+                - [IMPORTANT](https://github.com/triton-inference-server/model_analyzer/issues/920#issuecomment-3530296920)
+                    - Just because model_analyzer fails, doesnt mean it's model_analyzer's fault.  
+                    - Isolate `genai-perf` and `perf_analyzer` to identify the root cause
+                - `model_analyzer` runs `genai-perf` in another process, so modify the code so the stdout and stderr bubbles to the terminal
             - `model_analyzer_model_repository`
                 - Becase `model_analyzer` (which runs in a docker container - `A`) spins up `tritonserver` in another docker container `B`
                 - I have to mount `local_path` to `A` in `A_path` 
@@ -289,73 +293,143 @@ Need to configure `config.pbtxt` file in the `model_repository`
                     - For now, add `--exit-on-error=False` flag. The error isn't critical but need to be addressed
             - `model_analyzer` generates `genai-perf` commands, which has passthrough --flags for `perf_analyzer` commands 
                 - Checkout [`perf_analyzer` repo](https://github.com/triton-inference-server/perf_analyzer/tree/main) for more information
-                - This `genai-perf` command 
-                ```
-                    genai-perf \
-                      profile \
-                      -m $MODEL_NAME \
-                      --backend tensorrtllm \
-                      --streaming \
-                      --tokenizer $tokenizer_path \
-                      -- \
-                      -b 1 \
-                      -u localhost:8001 \
-                      -i grpc \
-                      -f gemma-3-1b-it_tensorrt_llm_bls-results.csv \
-                      --verbose-csv \
-                      --concurrency-range 1 \
-                      --measurement-mode count_windows \
-                      --collect-metrics \
-                      --metrics-url http://localhost:8002/metrics \
-                      --metrics-interval 1000
-                ```
-                - Would generate this `perf_analyzer` command
-                ```
-                    perf_analyzer \
-                      -m $MODEL_NAME \
-                      --async \
-                      --stability-percentage 999 \
-                      --request-count 10 \
-                      -i grpc \
-                      --streaming \
-                      --shape max_tokens:1 \
-                      --shape text_input:1 \
-                      -u localhost:8001 \
-                      --concurrency-range 1 \
-                      --service-kind triton \
-                      -b 1 \
-                      -u localhost:8001 \
-                      -i grpc \
-                      -f gemma-3-1b-it_tensorrt_llm_bls-results.csv \
-                      --verbose-csv \
-                      --concurrency-range 1 \
-                      --measurement-mode count_windows \
-                      --collect-metrics \
-                      --metrics-url http://localhost:8002/metrics \
-                      --metrics-interval 1000 \
-                      --input-data /workspace/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/inputs.json \
-                      --profile-export-file /workspace/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/profile_export.json
-                ```
-                - HOWEVER, there seems to a duplicated flag `--concurrency-range 1` in `perf_analyzer`
-                - Locally running these two commands, would give the same `perf_analyzer` error  
-                ```Error: Cannot use both Concurrency and Concurrency inference load modes.```
-                    - ALSO, this error message was meant for [a different reason](https://github.com/triton-inference-server/server/issues/6853#issuecomment-1924188257)
-                    - Good read about why `concurrency` and `request rate` cannot be enabled together
-                - Removing that duplicated `--concurrency-range 1` in either `perf_analyzer` or `genai-perf (passthrough)` would help fix this
+                - ***HOW TO GET THE ENVIRONMENT WORKING***
+                    - Build all `perf_analyzer`, `genai-perf`, and `model_analyzer` from source
+                    - Tried with `r25.06` and `r24.14`, only `r24.12` dont have the `Concurrency issue` described below
+                    The Dockerfiles are in `Dockerfiles` folder
+                    - After that, you can run `start_model_analyzer_container_env.sh` script 
+                    - Inside, you should have access to 2 repos
+                        - `model_analyzer`
+                        - `perf_analyzer`
+                            - This has `genai-perf` folder in it too
+                        - Modifying these codes will modify the behavior at runtime
+                    - Overview
+                        - Start up
+                            - `model_analyzer` takes in config
+                                - generate command and spin up a docker `triton server`
+                                - generate `genai-perf` command, with passthrough arguments to `perf_analyzer`
+                                    - `genai-perf` generate `perf_analyzer` command, append the passthrough arguments
+                                        - `perf_analyzer` runs and start benchmarking the tritonserver
+                        - Clean up
+                            - `genai-perf` or `perf_analyzer` (this one im not too sure) gets metrics from `triton server` save to the perf.json file
+                                - `model_analyzer` loads that perf.json file and save that in memory. It then calculate the next configuration to sweep
+                    - Now you have to `PATCH SOME CODE`
+                        - `model_analyzer` 
+                            - 1) Wrong auto generated command line
+                                - Context: `genai-perf` needs to be specified its running mode, like "profile" or "compare". We dont have that.
+                                - Navigate to `model_analyzer/perf_analyzer/perf_analyzer.py`
+                                - Find the line where `cmd = ["genai-perf", "-m"]`
+                                - Add "profile" after the bin file like so `cmd = ["genai-perf", "profile", "-m"]`
+                            - 2) Unify folders/files interface for `model_analyzer` to load `genai-perf` generated files  
+                                - Context: 
+                                    - File paths for loading `genai-perf` generated files is FIXED
+                                        - `profile_export_genai_perf.csv`
+                                        - `llm_inputs.json`
+                                        - `profile_export.json`
+                                    - While `genai-perf` generates these files into dynamically named folders
+                                        - something like `artifacts/{model_name}-{service_kind}-{backend}-concurrency{concurrency}`
+                                            - {model_name} is dependent, i'm using `gemma-3-1b-it_tensorrt_llm_bls`
+                                            - {service_kind} can be `triton`, `openai`,... i'm using `triton`
+                                            - {backend} is could be many, i'm using `tensorrtllm`
+                                            - {concurrency} is always `1` because a bug in argument parser it seems
+                                            => `artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/`
+                                            - ***NOTE***: `genai-perf` is supposed to generated different folder path depends on the different concurrency level.
+                                            But because it's not, its overwritting the old perf.csv files. Just something to keep in mind.
+                                        - `profile_export_genai_perf.csv`
+                                        - `inputs.json`
+                                        - `profile_export.json`
+                                - Navigate to `model_analyzer/constants.py`
+                                - Replace `GENAI_PERF_CSV` with the absolute path `{WorkingDir}/{genai-perf folder}/profile_export_genai_perf.json` 
+                                    - /opt/triton-model-analyzer/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/profile_export_genai_perf.csv
+                                - Replace `GENAI_PERF_COLLATERAL` with [`{WorkingDir}/{genai-perf folder}/inputs.json`, `{WorkingDir}/{genai-perf folder}/profile_export.json`]
+                                    - ["/opt/triton-model-analyzer/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/inputs.json", "/opt/triton-model-analyzer/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/profile_export.json"]
+                        - `perf_analyzer`/`genai-perf`
+                            - 1) Default url missings schemes 
+                                - Navigate to `perf_analyzer/genai-perf/genai-perf/constants.py`
+                                - ALL urls, add `http://` before localhost
+                            - 2) Patch `genai-perf` args.concurrency
+                                - `genai-perf` args have 2 fields for concurrency options
+                                    - args.concurrency (TO BE DEPRECATED)
+                                    - extra_args, which is a list that contains "--concurrency-range" and its value right after
+                                - We seems to be using the code that lingers between this transition => the bug
+                                - Navigate to `perf_analyzer/genai-perf/genai-perf/main.py` 
+                                - Find `def run()` function
+                                - Below `args, extra_args = parser.parse_args()`
+                                - Add `args.concurrency = extra_args[extra_args.index("--concurrency-range") + 1]`
+                                - This should help with loading the metrics later, which is stored using the value of `--concurrency-range` but loaded with the value of `args.concurrency`
+                                - And do this here would not affect the `dynamic folder name` that we patched above
+                - ***DEAD END***
+                    - I've tried making containers with
+                        - `24.12` and `25.06` for both base and developer containers
+                        - `model_analyzer` checkout branch `r24.12` or `r25.06`
+                        - Create containers by using the attached Dockerfile (which doesnt include `genai-perf`)
+                        - Install `genai-perf` through pip or copy from developer container
+                    => In all cases it ends with the `Concurrency issue` described below
+                    - This `genai-perf` command 
+                    ```
+                        genai-perf \
+                          profile \
+                          -m $MODEL_NAME \
+                          --backend tensorrtllm \
+                          --streaming \
+                          --tokenizer $tokenizer_path \
+                          -- \
+                          -b 1 \
+                          -u localhost:8001 \
+                          -i grpc \
+                          -f gemma-3-1b-it_tensorrt_llm_bls-results.csv \
+                          --verbose-csv \
+                          --concurrency-range 1 \
+                          --measurement-mode count_windows \
+                          --collect-metrics \
+                          --metrics-url http://localhost:8002/metrics \
+                          --metrics-interval 1000
+                    ```
+                    - Would generate this `perf_analyzer` command
+                    ```
+                        perf_analyzer \
+                          -m $MODEL_NAME \
+                          --async \
+                          --stability-percentage 999 \
+                          --request-count 10 \
+                          -i grpc \
+                          --streaming \
+                          --shape max_tokens:1 \
+                          --shape text_input:1 \
+                          -u localhost:8001 \
+                          --concurrency-range 1 \
+                          --service-kind triton \
+                          -b 1 \
+                          -u localhost:8001 \
+                          -i grpc \
+                          -f gemma-3-1b-it_tensorrt_llm_bls-results.csv \
+                          --verbose-csv \
+                          --concurrency-range 1 \
+                          --measurement-mode count_windows \
+                          --collect-metrics \
+                          --metrics-url http://localhost:8002/metrics \
+                          --metrics-interval 1000 \
+                          --input-data /workspace/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/inputs.json \
+                          --profile-export-file /workspace/artifacts/gemma-3-1b-it_tensorrt_llm_bls-triton-tensorrtllm-concurrency1/profile_export.json
+                    ```
+                    - HOWEVER, there seems to a duplicated flag `--concurrency-range 1` in `perf_analyzer`
+                    - Locally running these two commands, would give the same `perf_analyzer` error  
+                    ```Error: Cannot use both Concurrency and Concurrency inference load modes.```
+                        - ALSO, this error message was meant for [a different reason](https://github.com/triton-inference-server/server/issues/6853#issuecomment-1924188257)
+                        - Good read about why `concurrency` and `request rate` cannot be enabled together
+                    - Removing that duplicated `--concurrency-range 1` in either `perf_analyzer` or `genai-perf (passthrough)` would help fix this
 
-
-
-        
-
-- Benchmark
-    - Start dev container using `start_development_triton_container_env.sh`
-    - Make sure the Triton server hosting the model is up and running, and endpoint 8001 and 8002 are reachable
-    - Run `scripts/start_perf_analysis.sh` (after updating the endpoints of course)
-    - Performance log will be dumped in folder `perf_results` that was mounted in the dev container
-- Optimization
-    - KV_CACHE_FREE_GPU_MEM_FRACTION: x% (How much % memory is used for KV cache `after` the model is loaded)
-        - Recommended 0.85 or 0.9
-        - Say have 40gb vram, model is 20gb, then 0.5 would be 10gb of KV cache
+                - ***Sweeping through configs***
+                    - Configuration
+                        - Modify the `scripts/model_analyzer_config.yaml`
+                        - Because we are using an older version `r24.12` of `model_analyzer`, `perf_analyzer`, and `genai-perf`
+                        Some flags from online documentations might not apply.
+                        - I recommend just running the binary -h and see what they offer
+                    - Running
+                        - Use the `scripts/start_model_analyzer.sh`
+                            - Run with `--fresh` to clean up all previous runs artifacts
+                        - Make sure to copy the results into a shared volumes before rerunning
+                    
 
 
 
