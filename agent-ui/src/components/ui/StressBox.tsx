@@ -15,6 +15,8 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
   const stressTestRunningRef = useRef<boolean>(false);
   const [stressTestRunning, setStressTestRunning] = useState<boolean>(stressTestRunningRef.current);
 
+  const [requestsCount, setRequestsCount] = useState<number>(0);
+
   function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
@@ -30,6 +32,7 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
         getPromptWithGlobalSettings(client, getRandomConversation()),
       );
       currentBusyCount -= 1;
+      setRequestsCount((prev) => prev + 1);
       console.log("Task done");
     }
 
@@ -49,14 +52,14 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
   }
 
   return (
-    <div className="w-[90%] flex-col m-auto bg-gray-700 p-5 rounded mb-30">
-      <div className="flex ">
+    <div className="w-[100%] flex-col m-auto bg-gray-700 p-5 rounded mb-30">
+      <div className="flex flex-col">
         <div className="flex-1">Workers {concurrentWorkers}</div>
         <input
           className="flex-1"
           type="range"
           min={1}
-          max={50}
+          max={300}
           step={1}
           value={concurrentWorkers}
           onChange={(e) => {
@@ -66,9 +69,10 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
         />
       </div>
 
-      <div className="flex mt-5">
+      <div className="flex mt-5 items-center">
+        <div>Count: {requestsCount}</div>
         <button
-          className="m-auto mr-0 rounded-md px-3 py-1 hover:bg-red-800"
+          className="m-auto mr-0 rounded-md px-3 py-1 bg-gray-900 hover:bg-red-800"
           onClick={() => {
             stressTestRunningRef.current = !stressTestRunningRef.current;
             setStressTestRunning(stressTestRunningRef.current);
@@ -77,7 +81,7 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
             }
           }}
         >
-          {!stressTestRunning ? <>Start Stressing</> : <>Stop Stressing</>}
+          {!stressTestRunning ? <>Stress</> : <>Stop</>}
         </button>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ChatBox from "../components/ui/ChatBox";
 import glygatewayAgentService from "../services/GlygatewayAgentService";
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import { consumeNdjsonResponse, getPromptWithGlobalSettings } from "../services/Utils";
 import type { StreamTokenEvent } from "../models/NdjsonTypes";
 import type { Message, Prompt } from "../models/PromptTypes";
@@ -19,9 +19,11 @@ function Home() {
 
   const responseStringRef = useRef<string>("");
   const [responseString, setResponseString] = useState<string>(responseStringRef.current);
+  const [responseLoading, setResponseLoading] = useState<boolean>(false);
 
   const mutation = useMutation({
     mutationFn: async (prompt: Prompt) => {
+      setResponseLoading(true);
       return consumeNdjsonResponse(
         await glygatewayAgentService.streamComplete(prompt),
         (v: StreamTokenEvent) => {
@@ -37,10 +39,16 @@ function Home() {
       // Replace placeholder streaming message with final message box (by putting it in conversationRef)
       conversationRef.current = [...conversationRef.current, { role: "SYSTEM", content: responseStringRef.current }];
       setConversation(conversationRef.current);
+
       responseStringRef.current = "";
       setResponseString(responseStringRef.current);
+      setResponseLoading(false);
     },
-    onError: () => {},
+    onError: () => {
+      responseStringRef.current = "";
+      setResponseString(responseStringRef.current);
+      setResponseLoading(false);
+    },
   });
 
   const handleSubmit = () => {
@@ -63,13 +71,26 @@ function Home() {
     setChatMessage("");
   };
 
+  const handleReset = () => {
+    conversationRef.current = [];
+    setConversation(conversationRef.current);
+  };
+
   return (
     <div className="w-full m-auto flex">
-      <div className="flex-1"></div>
+      <div className="flex-1">
+        <button className="bg-gray-600 px-2 py-1 rounded-xl" onClick={handleReset}>
+          Reset
+        </button>
+      </div>
 
       <div className="flex-3 h-1/2 m-auto flex flex-col">
         <div className="w-full flex">
-          <ConversationBox conversationHistory={conversation} streamingMessage={responseString} />
+          <ConversationBox
+            conversationHistory={conversation}
+            streamingMessage={responseString}
+            streamingMessageLoading={responseLoading}
+          />
         </div>
 
         <div className="fixed bottom-5 left-0 right-0 w-full h-30 flex">

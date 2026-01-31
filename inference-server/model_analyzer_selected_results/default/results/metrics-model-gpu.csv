@@ -1,0 +1,10 @@
+Model,GPU UUID,Batch,Concurrency,Model Config Path,Instance Group,Satisfies Constraints,GPU Memory Usage (MB),GPU Utilization (%),GPU Power Usage (W)
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,1,gemma-3-1b-it_tensorrt_llm_bls_config_0,1:GPU,Yes,24220.0,92.3,205.8
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,2,gemma-3-1b-it_tensorrt_llm_bls_config_0,1:GPU,Yes,24220.0,95.0,207.8
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,4,gemma-3-1b-it_tensorrt_llm_bls_config_0,1:GPU,Yes,24220.0,95.0,208.0
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,8,gemma-3-1b-it_tensorrt_llm_bls_config_0,1:GPU,Yes,24220.0,92.5,206.3
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,1,gemma-3-1b-it_tensorrt_llm_bls_config_default,1:CPU,Yes,24220.0,92.4,202.7
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,2,gemma-3-1b-it_tensorrt_llm_bls_config_default,1:CPU,Yes,24220.0,95.0,208.0
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,4,gemma-3-1b-it_tensorrt_llm_bls_config_default,1:CPU,Yes,24220.0,95.0,208.0
+gemma-3-1b-it_tensorrt_llm_bls,GPU-daf97dbd-b56b-dab3-0b2c-c0bf8a309c92,1,8,gemma-3-1b-it_tensorrt_llm_bls_config_default,1:CPU,Yes,24220.0,95.1,208.4
+
