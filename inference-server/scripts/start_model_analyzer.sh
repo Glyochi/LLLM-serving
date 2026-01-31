@@ -18,3 +18,7 @@ echo
 echo "STARTING MODEL ANALYZER..."
 echo
 model-analyzer profile -f ./scripts/model_analyzer_config.yaml
+
+echo
+echo "reports/ and results/ are ready"
+
