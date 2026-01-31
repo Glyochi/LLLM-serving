@@ -63,7 +63,7 @@
     - There's instruction on how to convert hf checkpoint to triton consumalbe (.onnx?) and then convert to .engine files in `Tensorrtllm_backend/tensorrt_llm/examples/{model_family}/README.md`
     - Don't always work lol
 
-## Llama 7b
+## Llama 70b
 - Follow the README.md should be good enough
 - Quantize is iffy need more experiment has not gotten far with it yet
 - Too big for 4090 still
