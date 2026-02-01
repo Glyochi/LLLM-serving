@@ -198,37 +198,6 @@
 					"response": []
 				},
 				{
-					"name": "agent/complete",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://{{gateway-endpoint}}/agent/complete",
-							"protocol": "http",
-							"host": [
-								"{{gateway-endpoint}}"
-							],
-							"path": [
-								"agent",
-								"complete"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "agent/stream-complete",
 					"request": {
 						"auth": {
@@ -238,7 +207,38 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"raw": "{\r\n    \"conversation\": {\r\n        \"contents\": [\r\n            {\r\n                \"role\": \"SYSTEM\",\r\n                \"content\": \"You are a helpful assistant.\"\r\n            },\r\n            {\r\n                \"role\": \"USER\",\r\n                \"content\": \"Explain quantum computing in simple terms.\"\r\n            }\r\n        ]\r\n    },\r\n    \"inferenceParams\": {\r\n        \"modelId\": \"gemma-3-1b-it_tensorrt_llm_bls\",\r\n        \"maxTokens\": 100,\r\n        \"temperature\": 1.0,\r\n        \"seed\": 809357414,\r\n        \"topP\": 0.9,\r\n        \"stream\": true\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/stream-complete",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"stream-complete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/complete",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"conversation\": {\r\n        \"contents\": [\r\n            {\r\n                \"role\": \"SYSTEM\",\r\n                \"content\": \"You are a helpful assistant.\"\r\n            },\r\n            {\r\n                \"role\": \"USER\",\r\n                \"content\": \"Explain quantum computing in simple terms.\"\r\n            }\r\n        ]\r\n    },\r\n    \"inferenceParams\": {\r\n        \"modelId\": \"gemma-3-1b-it_tensorrt_llm_bls\",\r\n        \"maxTokens\": 2048,\r\n        \"temperature\": 0.6,\r\n        \"seed\": 809357414,\r\n        \"topP\": 0.9,\r\n        \"stream\": false\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -260,7 +260,7 @@
 					"response": []
 				},
 				{
-					"name": "agent/stream-complete Copy",
+					"name": "agent/fail",
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -277,14 +277,107 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{gateway-endpoint}}/agent/complete",
+							"raw": "http://{{gateway-endpoint}}/agent/fail",
 							"protocol": "http",
 							"host": [
 								"{{gateway-endpoint}}"
 							],
 							"path": [
 								"agent",
-								"complete"
+								"fail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/test",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/test",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"test"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/test Copy 3",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/fail",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"fail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agent/test Copy 4",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"prefill\": \"reee\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{gateway-endpoint}}/agent/fail",
+							"protocol": "http",
+							"host": [
+								"{{gateway-endpoint}}"
+							],
+							"path": [
+								"agent",
+								"fail"
 							]
 						}
 					},
