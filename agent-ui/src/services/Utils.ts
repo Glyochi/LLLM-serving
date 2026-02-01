@@ -135,7 +135,8 @@ function getRandomConversation() {
     },
   ];
 
-  const randomIndex = Math.floor(Math.random() * (randomConversationsArray.length + 1));
+  const randomIndex = Math.floor(Math.random() * randomConversationsArray.length);
+
   return randomConversationsArray[randomIndex];
 }
 

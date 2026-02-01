@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import type { Conversation, Prompt } from "../../models/PromptTypes";
 import glygatewayAgentService from "../../services/GlygatewayAgentService";
-import { getPromptWithGlobalSettings, getRandomConversation } from "../../services/Utils";
+import { consumeNdjsonResponse, getPromptWithGlobalSettings, getRandomConversation } from "../../services/Utils";
 
 interface StressBoxProps {}
 
@@ -11,6 +11,7 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
 
   const concurrentWorkersRef = useRef<number>(1);
   const [concurrentWorkers, setConcurrentWorkers] = useState<number>(concurrentWorkersRef.current);
+  const currentBusyCount = useRef<number>(0);
 
   const stressTestRunningRef = useRef<boolean>(false);
   const [stressTestRunning, setStressTestRunning] = useState<boolean>(stressTestRunningRef.current);
@@ -21,31 +22,36 @@ const StressBox: React.FC<StressBoxProps> = ({}) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  async function makeRequest() {
+    try {
+      const response = await glygatewayAgentService.streamComplete(
+        getPromptWithGlobalSettings(client, getRandomConversation()),
+      );
+      await consumeNdjsonResponse(response, (m: any) => {});
+    } catch (error) {
+      console.log("Request failed");
+      console.error(error);
+    }
+    currentBusyCount.current -= 1;
+    setRequestsCount((prev) => prev + 1);
+    console.log("Task done");
+  }
+
   // Not the prettiest solutions but it works lol
   async function startStressTest() {
     console.log("Started stress testing");
 
-    var currentBusyCount = 0;
-
-    async function makeRequest() {
-      const _ = await glygatewayAgentService.streamComplete(
-        getPromptWithGlobalSettings(client, getRandomConversation()),
-      );
-      currentBusyCount -= 1;
-      setRequestsCount((prev) => prev + 1);
-      console.log("Task done");
-    }
-
     while (stressTestRunningRef.current) {
       var newTaskCount = 0;
-      while (currentBusyCount < concurrentWorkersRef.current) {
-        currentBusyCount += 1;
+      while (currentBusyCount.current < concurrentWorkersRef.current) {
+        currentBusyCount.current += 1;
         newTaskCount += 1;
         makeRequest();
       }
       if (newTaskCount != 0) {
         console.log("Added " + newTaskCount + " new tasks");
       }
+      console.log("Current concurrent requests count " + currentBusyCount.current);
       await sleep(100);
     }
     console.log("Stopped stress testing");
